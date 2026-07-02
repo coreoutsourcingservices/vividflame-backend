@@ -178,9 +178,9 @@ export const verifyOTP = async (req, res) => {
 }
 export const login = async (req, res) => {
     try {
-        let { email, password, } = req.body;
+        let { email } = req.body;
         email = email.trim().toLowerCase();
-        if (!email || !password) {
+        if (!email) {
             res.status(400)
                 .json({
                     message: "all fild requed ",
@@ -196,10 +196,10 @@ export const login = async (req, res) => {
                     success: false
                 })
         }
-        const checkPassword = await bcrypt.compare(password, check_user.password);
-        if (!checkPassword) {
-            return res.status(400).json({ message: "invalid password" });
-        }
+        // const checkPassword = await bcrypt.compare(password, check_user.password);
+        // if (!checkPassword) {
+        //     return res.status(400).json({ message: "invalid password" });
+        // }
 
         const generateOTP = (length = 6) => {
             let otp = "";
