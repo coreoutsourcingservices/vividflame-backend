@@ -4,11 +4,31 @@ import { sendEmailOTP } from "../util/mailer.js";
 import bcrypt from "bcrypt"
 import bodyParser from "body-parser";
 import jwt from "jsonwebtoken"
+
+const calculateAge = (dob) => {
+    const today = new Date();
+    const birthDate = new Date(dob);
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+        age--;
+    }
+
+    return age;
+};
+
+
 export const signup = async (req, res) => {
     try {
-        let {  name, email,number ,password } = req.body;
+        let { name, email, number, dob, password, gender } = req.body;
         email = email.trim().toLowerCase();
-        if (!name || !number || !email || !password ) {
+        if (!name || !number || !email || !password || !dob || !gender) {
             res.status(400)
                 .json({
                     message: "all fild requed ",
@@ -42,7 +62,10 @@ export const signup = async (req, res) => {
             name,
             email,
             password: hashPassword,
-           number,
+            number,
+            dob,
+            gender,
+            age: calculateAge(dob),
 
         });
 
@@ -115,19 +138,22 @@ export const verifyOTP = async (req, res) => {
                 email: data.email
             },
             process.env.JWT_KEY,
-            { expiresIn: '6h' }
+
         )
         res.cookie("token", jwtTokem, {
             httpOnly: true,
             secure: false, // production me true
-            maxAge: 6 * 60 * 60 * 1000
+
         })
 
         const user = await User.create({
             name: data.name,
             email: data.email,
             password: data.password,
-           number:data.number,
+            number: data.number,
+            dob: data.dob,
+            age: data.age,
+            gender: data.gender,
         });
         const userResponse = user.toObject();
 
@@ -286,7 +312,7 @@ export const verifyOTP_login = async (req, res) => {
             jwtTokem,
             name: data.name,
             email: data.email,
-            number:data.number,
+            number: data.number,
         });
 
     } catch (errer) {

@@ -3,10 +3,11 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
     },
 
-    email:{
+    email: {
         type: String,
         required: true,
         unique: true,
@@ -14,15 +15,32 @@ const userSchema = new mongoose.Schema({
         trim: true,
     },
 
-    number:{
+    number: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
     },
 
-    password:{
-        type: String,
-        required: true
+    dob: {
+        type: Date,
+        required: true,
     },
+    age:{
+          type: Number,
+    },
+
+    gender: {
+        type: String,
+        required: true,
+        enum: ["Male", "Female", "Other"],
+    },
+
+    password: {
+        type: String,
+        required: true,
+    },
+}, {
+    timestamps: true
 });
 
 export const User = mongoose.model("User", userSchema);
