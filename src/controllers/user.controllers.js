@@ -192,7 +192,7 @@ export const login = async (req, res) => {
         if (!check_user) {
             return res.status(400)
                 .json({
-                    message: "email is already not  exist,pleass you can signup",
+                    message: "user not found ,pleass you can signup",
                     success: false
                 })
         }
@@ -210,19 +210,26 @@ export const login = async (req, res) => {
         };
 
         const otp = generateOTP(6);
+const {
+    name,
+    email:userEmail,
+    number,
+    dob,
+    age,
+    gender,
+    password
+} = check_user;
 
-
-        const dataSave = saveOTP(email, {
-            otp,
-            email,
-
-            name: check_user.name,
-
-            DOB: check_user.DOB,
-            gender: check_user.gender
-
-
-        });
+       const dataSave = saveOTP(email, {
+    otp,
+    name,
+    email:userEmail,
+    number,
+    dob,
+    age,
+    gender,
+    password
+});
 
         const existingOTP = await sendEmailOTP(email, otp);
         if (existingOTP && existingOTP.expires > Date.now()) {
@@ -293,12 +300,12 @@ export const verifyOTP_login = async (req, res) => {
                 email: data.email
             },
             process.env.JWT_KEY,
-            { expiresIn: '6h' }
+
         )
         res.cookie("token", jwtTokem, {
             httpOnly: true,
             secure: false, // production me true
-            maxAge: 6 * 60 * 60 * 1000
+
         })
 
 
@@ -313,6 +320,9 @@ export const verifyOTP_login = async (req, res) => {
             name: data.name,
             email: data.email,
             number: data.number,
+            dob: data.dob,
+            age: data.age,
+            gender: data.gender,
         });
 
     } catch (errer) {
