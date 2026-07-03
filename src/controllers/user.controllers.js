@@ -317,6 +317,7 @@ export const verifyOTP_login = async (req, res) => {
             success: true,
             message: "login successfully",
             jwtTokem,
+            id :data._id,
             name: data.name,
             email: data.email,
             number: data.number,
