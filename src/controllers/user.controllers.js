@@ -165,6 +165,7 @@ export const verifyOTP = async (req, res) => {
             success: true,
             message: "Signup successfully",
             jwtTokem,
+            userId: user._id,   // 👈 User ID
             user: userResponse
         });
 
@@ -210,26 +211,26 @@ export const login = async (req, res) => {
         };
 
         const otp = generateOTP(6);
-const {
-    name,
-    email:userEmail,
-    number,
-    dob,
-    age,
-    gender,
-    password
-} = check_user;
+        const {
+            name,
+            email: userEmail,
+            number,
+            dob,
+            age,
+            gender,
+            password
+        } = check_user;
 
-       const dataSave = saveOTP(email, {
-    otp,
-    name,
-    email:userEmail,
-    number,
-    dob,
-    age,
-    gender,
-    password
-});
+        const dataSave = saveOTP(email, {
+            otp,
+            name,
+            email: userEmail,
+            number,
+            dob,
+            age,
+            gender,
+            password
+        });
 
         const existingOTP = await sendEmailOTP(email, otp);
         if (existingOTP && existingOTP.expires > Date.now()) {
@@ -317,7 +318,7 @@ export const verifyOTP_login = async (req, res) => {
             success: true,
             message: "login successfully",
             jwtTokem,
-            id :data._id,
+            id: data._id,
             name: data.name,
             email: data.email,
             number: data.number,
