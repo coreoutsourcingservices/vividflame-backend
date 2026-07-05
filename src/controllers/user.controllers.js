@@ -212,6 +212,7 @@ export const login = async (req, res) => {
 
         const otp = generateOTP(6);
         const {
+            _id,
             name,
             email: userEmail,
             number,
@@ -223,6 +224,7 @@ export const login = async (req, res) => {
 
         const dataSave = saveOTP(email, {
             otp,
+            _id,
             name,
             email: userEmail,
             number,
@@ -318,7 +320,7 @@ export const verifyOTP_login = async (req, res) => {
             success: true,
             message: "login successfully",
             jwtTokem,
-            id: data._id,
+            userId: data._id,   // 👈 ID
             name: data.name,
             email: data.email,
             number: data.number,
