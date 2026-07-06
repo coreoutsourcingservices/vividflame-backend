@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { sendOtp, verifyOTP } from "./src/controllers/otp.controllers.js";
 import userRouter from "./src/router/user.router.js"
+import productRouter from "./src/router/price.router.js"
 import { connectDB } from "./src/db/db.js";
 dotenv.config();
 connectDB()
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
     res.send("hello")
 })
 app.use("/user",userRouter)
+app.use("/pro",productRouter)
 
 app.post("/send-otp", sendOtp);
 app.post("/verify-otp", verifyOTP);
