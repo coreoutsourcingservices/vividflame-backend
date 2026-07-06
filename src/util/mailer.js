@@ -5,6 +5,9 @@ dotenv.config();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.USER,
     pass: process.env.PASS, // Gmail App Password
@@ -38,7 +41,7 @@ export const sendEmailOTP = async (to, otp) => {
           <tr>
             <td align="center" style="background:#2563eb;padding:35px;">
 
-             
+
 
               <h1 style="margin:0;color:#fff;font-size:28px;">
                 OTP Verification
