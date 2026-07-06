@@ -40,7 +40,7 @@ router.delete("/:user/:addressId", deleteAddress);
 
 // Price Routes
 router.post("/price/create", createPrice);
-router.get("/product/:userId", getProductsByUser);
+router.get("/product/:user", getProductsByUser);
 
 
 

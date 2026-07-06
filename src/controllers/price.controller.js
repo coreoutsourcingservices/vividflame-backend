@@ -1,5 +1,5 @@
 import { Price } from "../model/price.js";
-
+import mongoose from "mongoose";
 /**
  * Create Price
  */
@@ -39,11 +39,20 @@ export const createPrice = async (req, res) => {
     }
 };
 
+
+
 export const getProductsByUser = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { user } = req.params;
 
-        const price = await Price.findOne({ user: userId });
+        if (!mongoose.Types.ObjectId.isValid(user)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid User ID",
+            });
+        }
+
+        const price = await Price.findOne({ user }).lean();
 
         if (!price) {
             return res.status(404).json({
@@ -59,6 +68,8 @@ export const getProductsByUser = async (req, res) => {
             grandTotal: price.grandTotal,
         });
     } catch (error) {
+        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message,
