@@ -35,12 +35,9 @@ const priceSchema = new mongoose.Schema(
                     type: Number,
                     default: 0,
                 },
-                totalPrice: {
-                    type: Number,
-                    default: 0,
-                },
+
             },
-           
+
         ],
 
         grandTotal: {
@@ -56,7 +53,7 @@ const priceSchema = new mongoose.Schema(
 );
 
 // Automatically calculate prices before saving
-priceSchema.pre("save", function (next) {
+priceSchema.pre("save", function () {
     let total = 0;
 
     this.products.forEach((item) => {
@@ -65,7 +62,5 @@ priceSchema.pre("save", function (next) {
     });
 
     this.grandTotal = total;
-    next();
 });
-
 export const Price = mongoose.model("Price", priceSchema);
