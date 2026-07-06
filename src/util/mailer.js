@@ -141,30 +141,7 @@ Our support team will never ask for your verification code.
 
 </p>
 
-<div
-style="
-margin-top:35px;
-text-align:center;
-">
 
-<a
-href="https://vividflame.in"
-style="
-display:inline-block;
-padding:15px 34px;
-background:#ff6b35;
-color:#fff;
-text-decoration:none;
-border-radius:8px;
-font-weight:bold;
-font-size:16px;
-">
-
-Visit Vivid Flame
-
-</a>
-
-</div>
 
 <hr
 style="
@@ -231,23 +208,7 @@ Premium Lifestyle & Fragrance Products
 
 </p>
 
-<p
-style="
-margin-top:18px;
-">
 
-<a
-href="https://vividflame.in"
-style="
-color:#60a5fa;
-text-decoration:none;
-">
-
-https://vividflame.in
-
-</a>
-
-</p>
 
 <p
 style="
