@@ -52,27 +52,29 @@ export const getProductsByUser = async (req, res) => {
             });
         }
 
-        const price = await Price.findOne({ user }).lean();
+        const orders = await Price.find({ user })
+            .sort({ createdAt: -1 })
+            .lean();
 
-        if (!price) {
+        if (!orders.length) {
             return res.status(404).json({
                 success: false,
-                message: "No products found for this user",
+                message: "No orders found",
             });
         }
 
         return res.status(200).json({
             success: true,
-            totalProducts: price.products.length,
-            products: price.products,
-            grandTotal: price.grandTotal,
+            totalOrders: orders.length,
+            orders,
         });
+
     } catch (error) {
-        console.error(error);
 
         return res.status(500).json({
-            success: false,
-            message: error.message,
+            success:false,
+            message:error.message
         });
+
     }
 };
