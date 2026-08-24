@@ -1,0 +1,2565 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --surface-3: #eef2f7;
+      --text: #172033;
+      --muted: #6b7280;
+      --primary: #5b5cf0;
+      --primary-2: #7c3aed;
+      --primary-soft: rgba(91, 92, 240, .11);
+      --danger: #dc2626;
+      --danger-soft: rgba(220, 38, 38, .10);
+      --success: #059669;
+      --success-soft: rgba(5, 150, 105, .10);
+      --warning: #d97706;
+      --warning-soft: rgba(217, 119, 6, .11);
+      --info: #0284c7;
+      --info-soft: rgba(2, 132, 199, .10);
+      --border: #e5e7eb;
+      --border-strong: #d7dce4;
+      --shadow: 0 12px 35px rgba(17, 24, 39, .08);
+      --shadow-sm: 0 4px 16px rgba(17, 24, 39, .06);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --header-h: 80px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0c111b;
+      --surface: #121926;
+      --surface-2: #182131;
+      --surface-3: #202b3d;
+      --text: #edf2f7;
+      --muted: #9ca8b8;
+      --primary: #818cf8;
+      --primary-2: #a78bfa;
+      --primary-soft: rgba(129, 140, 248, .14);
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, .12);
+      --success: #34d399;
+      --success-soft: rgba(52, 211, 153, .12);
+      --warning: #f59e0b;
+      --warning-soft: rgba(245, 158, 11, .12);
+      --info: #38bdf8;
+      --info-soft: rgba(56, 189, 248, .12);
+      --border: #263246;
+      --border-strong: #334155;
+      --shadow: 0 16px 42px rgba(0, 0, 0, .28);
+      --shadow-sm: 0 5px 18px rgba(0, 0, 0, .22);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(91, 92, 240, .08), transparent 32%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .6;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid rgba(91, 92, 240, .28);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    }
+
+    .topbar-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 16px 22px;
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2vw, 1.65rem);
+      letter-spacing: -.03em;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .control,
+    .btn,
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 12px;
+      min-height: 42px;
+      transition: .18s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .control {
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control label {
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    select {
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      background: transparent;
+      font-weight: 700;
+      min-width: 110px;
+    }
+
+    select option {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .btn {
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .btn:hover,
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--border-strong);
+    }
+
+    .btn.primary {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    }
+
+    .btn.danger {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 26%, var(--border));
+      background: var(--danger-soft);
+    }
+
+    .btn.ghost {
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .btn.small {
+      min-height: 36px;
+      padding: 0 11px;
+      font-size: .85rem;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .connection-row {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 0 22px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #9ca3af;
+      box-shadow: 0 0 0 4px rgba(156, 163, 175, .12);
+    }
+
+    .status-dot.ok {
+      background: var(--success);
+      box-shadow: 0 0 0 4px var(--success-soft);
+    }
+
+    .status-dot.bad {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px var(--danger-soft);
+    }
+
+    .api-url {
+      margin-left: auto;
+      max-width: 50%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 112px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .88rem;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: 1.9rem;
+      font-weight: 850;
+      letter-spacing: -.04em;
+      margin-top: 5px;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 1.15rem;
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .users-panel {
+      position: sticky;
+      top: 121px;
+      max-height: calc(100vh - 143px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-head {
+      padding: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 850;
+    }
+
+    .count-badge {
+      font-size: .78rem;
+      color: var(--muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    .search-wrap {
+      margin-top: 14px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 0 38px 0 38px;
+    }
+
+    .search-input::placeholder {
+      color: color-mix(in srgb, var(--muted) 82%, transparent);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .clear-search {
+      display: none;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+    }
+
+    .clear-search.visible {
+      display: grid;
+      place-items: center;
+    }
+
+    .sort-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .sort-row select {
+      width: 100%;
+      min-height: 40px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-2);
+      font-weight: 650;
+    }
+
+    .users-list {
+      overflow: auto;
+      padding: 10px;
+    }
+
+    .user-card {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr);
+      gap: 12px;
+      text-align: left;
+      transition: .18s ease;
+      margin-bottom: 6px;
+    }
+
+    .user-card:hover {
+      background: var(--surface-2);
+      border-color: var(--border);
+    }
+
+    .user-card.active {
+      background: var(--primary-soft);
+      border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      letter-spacing: -.03em;
+    }
+
+    .user-main {
+      min-width: 0;
+    }
+
+    .user-name {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-email,
+    .user-meta {
+      color: var(--muted);
+      font-size: .8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-meta {
+      margin-top: 3px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mini-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: .72rem;
+    }
+
+    .details-panel {
+      min-height: 640px;
+    }
+
+    .details-hero {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      background:
+        linear-gradient(135deg, var(--primary-soft), transparent 45%),
+        var(--surface);
+    }
+
+    .details-user {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .details-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      font-size: 1.25rem;
+    }
+
+    .details-name {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.8vw, 2rem);
+      letter-spacing: -.04em;
+    }
+
+    .details-sub {
+      color: var(--muted);
+      margin: 3px 0 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 10px 13px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .tab-count {
+      margin-left: 5px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: color-mix(in srgb, currentColor 12%, transparent);
+      font-size: .73rem;
+    }
+
+    .tab-panel {
+      padding: 20px;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .info-card {
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      min-width: 0;
+    }
+
+    .info-label {
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .info-value-row {
+      margin-top: 7px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .info-value {
+      font-weight: 750;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    .copy-btn {
+      margin-left: auto;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 8px;
+      min-width: 30px;
+      height: 30px;
+    }
+
+    .section-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .section-toolbar h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .address-card,
+    .product-card {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 16px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .address-type {
+      font-weight: 850;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+
+    .badge.default {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .badge.status {
+      background: var(--info-soft);
+      color: var(--info);
+    }
+
+    .address-lines {
+      display: grid;
+      gap: 6px;
+    }
+
+    .address-line {
+      color: var(--muted);
+      word-break: break-word;
+    }
+
+    .address-line strong {
+      color: var(--text);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .product-card {
+      padding: 0;
+    }
+
+    .product-image-wrap {
+      aspect-ratio: 16/9;
+      background: var(--surface-3);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-placeholder {
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      gap: 7px;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .product-body {
+      padding: 15px;
+    }
+
+    .product-title {
+      margin: 0;
+      font-weight: 850;
+      font-size: 1rem;
+    }
+
+    .product-category {
+      color: var(--muted);
+      font-size: .8rem;
+      margin-top: 3px;
+    }
+
+    .product-price {
+      font-size: 1.25rem;
+      font-weight: 900;
+      margin-top: 12px;
+    }
+
+    .product-meta {
+      margin-top: 9px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .product-description {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .85rem;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
+    }
+
+    .empty,
+    .error-box,
+    .placeholder-panel {
+      border: 1px dashed var(--border-strong);
+      border-radius: 16px;
+      padding: 32px 18px;
+      text-align: center;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    }
+
+    .empty-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 10px;
+      background: var(--surface-3);
+      font-size: 1.2rem;
+    }
+
+    .empty h3,
+    .error-box h3,
+    .placeholder-panel h3 {
+      margin: 0 0 6px;
+      color: var(--text);
+    }
+
+    .empty p,
+    .error-box p,
+    .placeholder-panel p {
+      margin: 0;
+    }
+
+    .error-box {
+      border-style: solid;
+      border-color: color-mix(in srgb, var(--danger) 26%, var(--border));
+      background: var(--danger-soft);
+    }
+
+    .error-msg {
+      margin-top: 10px !important;
+      font-size: .85rem;
+      white-space: pre-line;
+    }
+
+    .error-actions {
+      margin-top: 14px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .skeleton-list {
+      padding: 10px;
+    }
+
+    .skeleton-card {
+      height: 72px;
+      border-radius: 14px;
+      margin-bottom: 8px;
+      background: var(--surface-2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-card.large {
+      height: 190px;
+    }
+
+    .skeleton-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(148, 163, 184, .15), transparent);
+      animation: shimmer 1.25s infinite;
+    }
+
+    @keyframes shimmer {
+      to {
+        transform: translateX(100%);
+      }
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      background: rgba(8, 15, 29, .56);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      max-height: min(88vh, 860px);
+      overflow: auto;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 26px 80px rgba(0, 0, 0, .28);
+    }
+
+    .modal.small {
+      width: min(500px, 100%);
+    }
+
+    .modal-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.12rem;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-foot {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 11px;
+      outline: 0;
+    }
+
+    .field textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .checkbox-row {
+      min-height: 42px;
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 10px 11px;
+    }
+
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .delete-preview {
+      padding: 13px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      margin-top: 14px;
+      color: var(--muted);
+    }
+
+    .toasts {
+      position: fixed;
+      z-index: 100;
+      right: 18px;
+      top: 18px;
+      width: min(380px, calc(100vw - 36px));
+      display: grid;
+      gap: 9px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      animation: toastIn .22s ease;
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--success);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--danger);
+    }
+
+    .toast.info {
+      border-left: 4px solid var(--info);
+    }
+
+    .toast.warning {
+      border-left: 4px solid var(--warning);
+    }
+
+    .toast-icon {
+      font-weight: 900;
+    }
+
+    .toast-text {
+      flex: 1;
+      font-size: .88rem;
+    }
+
+    .toast-close {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .users-panel {
+        position: static;
+        max-height: none;
+      }
+
+      .users-list {
+        max-height: 480px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell {
+        padding: 14px;
+      }
+
+      .topbar-inner {
+        padding: 12px 14px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .control {
+        flex: 1 1 220px;
+      }
+
+      .connection-row {
+        padding: 0 14px 10px;
+        flex-wrap: wrap;
+      }
+
+      .api-url {
+        margin-left: 0;
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .stat-card {
+        min-height: 94px;
+        padding: 14px;
+      }
+
+      .stat-value {
+        font-size: 1.55rem;
+      }
+
+      .overview-grid,
+      .cards-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .details-hero {
+        padding: 18px;
+      }
+
+      .tab-panel {
+        padding: 14px;
+      }
+
+      .modal-backdrop {
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .header-actions>* {
+        width: 100%;
+      }
+
+      .btn,
+      .control {
+        justify-content: center;
+      }
+
+      .details-user {
+        align-items: flex-start;
+      }
+
+      .details-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+      }
+
+      .card-actions {
+        flex-direction: column;
+      }
+
+      .card-actions .btn {
+        width: 100%;
+      }
+    }
+
+    /* Product card compact layout */
+    .product-card {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      align-items: stretch;
+      min-height: 120px;
+    }
+
+    .product-image-wrap {
+      width: 120px;
+      height: 120px;
+      aspect-ratio: auto;
+      border-right: 1px solid var(--border);
+    }
+
+    .product-image {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+    }
+
+    .product-placeholder {
+      width: 120px;
+      height: 120px;
+      padding: 10px;
+      font-size: .75rem;
+    }
+
+    .product-body {
+      padding: 13px 15px;
+      min-width: 0;
+    }
+
+    .product-title {
+      font-size: .95rem;
+      line-height: 1.35;
+    }
+
+    .product-price {
+      font-size: 1.15rem;
+      margin-top: 8px;
+    }
+
+    .product-meta {
+      margin-top: 9px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 14px;
+      font-size: .78rem;
+    }
+
+    .product-meta span {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 680px) {
+      .product-card {
+        grid-template-columns: 90px minmax(0, 1fr);
+        min-height: 100px;
+      }
+
+      .product-image-wrap,
+      .product-image,
+      .product-placeholder {
+        width: 90px;
+        height: 100px;
+      }
+
+      .product-body {
+        padding: 11px 12px;
+      }
+
+      .product-meta {
+        gap: 6px 10px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1>User Management</h1>
+        <p>Manage users, addresses and products</p>
+      </div>
+
+      <div class="header-actions">
+        <div class="control">
+          <label for="environmentSelect">Environment:</label>
+          <select id="environmentSelect" aria-label="Select API environment">
+            <option value="production">Production</option>
+            <option value="local">Localhost</option>
+          </select>
+        </div>
+
+        <button id="themeToggle" class="btn" type="button" aria-label="Toggle theme">🌙 Dark</button>
+        <button id="refreshUsersBtn" class="btn primary" type="button">↻ Refresh</button>
+      </div>
+    </div>
+
+    <div class="connection-row">
+      <span id="statusDot" class="status-dot" aria-hidden="true"></span>
+      <span id="connectionText">API status unknown</span>
+      <span id="apiUrl" class="api-url"></span>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="stats" aria-label="Dashboard statistics">
+      <article class="stat-card">
+        <div>
+          <div class="stat-label">Total Users</div>
+          <div id="totalUsers" class="stat-value">0</div>
+        </div>
+        <div class="stat-icon">👥</div>
+      </article>
+      <article class="stat-card">
+        <div>
+          <div class="stat-label">Male</div>
+          <div id="maleUsers" class="stat-value">0</div>
+        </div>
+        <div class="stat-icon">♂</div>
+      </article>
+      <article class="stat-card">
+        <div>
+          <div class="stat-label">Female</div>
+          <div id="femaleUsers" class="stat-value">0</div>
+        </div>
+        <div class="stat-icon">♀</div>
+      </article>
+      <article class="stat-card">
+        <div>
+          <div class="stat-label">Other</div>
+          <div id="otherUsers" class="stat-value">0</div>
+        </div>
+        <div class="stat-icon">◌</div>
+      </article>
+    </section>
+
+    <section class="workspace">
+      <aside class="panel users-panel">
+        <div class="panel-head">
+          <div class="panel-title-row">
+            <h2 class="panel-title">Users</h2>
+            <span id="usersCount" class="count-badge">0 users</span>
+          </div>
+
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <label class="hidden" for="searchInput">Search users</label>
+            <input id="searchInput" class="search-input" type="search" placeholder="Search by name, email or phone..."
+              autocomplete="off">
+            <button id="clearSearchBtn" class="clear-search" type="button" aria-label="Clear search">×</button>
+          </div>
+
+          <div class="sort-row">
+            <label class="hidden" for="sortSelect">Sort users</label>
+            <select id="sortSelect" aria-label="Sort users">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="az">Name A-Z</option>
+              <option value="za">Name Z-A</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="usersList" class="users-list" aria-live="polite"></div>
+      </aside>
+
+      <section class="panel details-panel">
+        <div id="noSelection" class="placeholder-panel" style="margin:20px;">
+          <div class="empty-icon">👤</div>
+          <h3>Select a user</h3>
+          <p>Choose a user from the list to view profile details.</p>
+        </div>
+
+        <div id="selectedUserView" class="hidden">
+          <div class="details-hero">
+            <div class="details-user">
+              <div id="detailsAvatar" class="avatar details-avatar">U</div>
+              <div>
+                <h2 id="detailsName" class="details-name">User</h2>
+                <p id="detailsSub" class="details-sub"></p>
+              </div>
+            </div>
+          </div>
+
+          <nav class="tabs" aria-label="User detail sections">
+            <button class="tab active" data-tab="overview" type="button">Overview</button>
+            <button class="tab" data-tab="addresses" type="button">Addresses <span id="addressTabCount"
+                class="tab-count">—</span></button>
+            <button class="tab" data-tab="products" type="button">Products <span id="productTabCount"
+                class="tab-count">—</span></button>
+          </nav>
+
+          <div id="overviewPanel" class="tab-panel"></div>
+          <div id="addressesPanel" class="tab-panel hidden"></div>
+          <div id="productsPanel" class="tab-panel hidden"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="editModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="editModalTitle">Edit Address</h2>
+        <button id="closeEditModalBtn" class="icon-btn" type="button" aria-label="Close edit address modal">×</button>
+      </div>
+      <form id="editAddressForm">
+        <div id="editFormFields" class="modal-body form-grid"></div>
+        <div class="modal-foot">
+          <button id="cancelEditBtn" class="btn" type="button">Cancel</button>
+          <button id="saveAddressBtn" class="btn primary" type="submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="deleteModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true"
+    aria-labelledby="deleteModalTitle">
+    <div class="modal small">
+      <div class="modal-head">
+        <h2 id="deleteModalTitle">Delete Address?</h2>
+        <button id="closeDeleteModalBtn" class="icon-btn" type="button"
+          aria-label="Close delete confirmation modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p>This action cannot be undone.</p>
+        <div id="deleteAddressPreview" class="delete-preview"></div>
+      </div>
+      <div class="modal-foot">
+        <button id="cancelDeleteBtn" class="btn" type="button">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn danger" type="button">Delete Address</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    //
+    const API_BASES = {
+      production: "https://vividflame.osmloan.com",
+      local: "http://localhost:4040"
+    };
+
+    /*
+      Product backend route:
+        router.get("/product/:user", getProductsByUser)
+
+      Router is mounted under:
+        /pro
+
+      Final endpoint:
+        GET /pro/product/:user
+    */
+    const PRODUCT_ENDPOINT_BUILDERS = [
+      userId => `/pro/product/${encodeURIComponent(userId)}`
+    ];
+
+    const SENSITIVE_KEYS = new Set([
+      "password", "passwordHash", "token", "accessToken", "refreshToken"
+    ]);
+
+    const INTERNAL_ADDRESS_KEYS = new Set([
+      "_id", "user", "createdAt", "updatedAt", "__v"
+    ]);
+
+    const state = {
+      users: [],
+      selectedUser: null,
+      addresses: [],
+      products: [],
+      search: "",
+      sort: localStorage.getItem("admin-sort") || "newest",
+      environment: localStorage.getItem("admin-environment") || "production",
+      activeTab: "overview",
+      addressCache: new Map(),
+      productCache: new Map(),
+      loading: {
+        users: false,
+        addresses: false,
+        products: false
+      },
+      errors: {
+        users: "",
+        addresses: "",
+        products: ""
+      },
+      editingAddress: null,
+      deletingAddress: null
+    };
+
+    let BASE_URL = API_BASES[state.environment] || API_BASES.production;
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function safeObject(obj) {
+      if (!obj || typeof obj !== "object") return {};
+      const out = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (SENSITIVE_KEYS.has(key)) continue;
+        out[key] = value;
+      }
+      return out;
+    }
+
+    function getMessage(payload, fallback = "Something went wrong") {
+      if (!payload) return fallback;
+      if (typeof payload === "string") return payload;
+      return payload.message || payload.error || payload.detail || fallback;
+    }
+
+    function extractArray(response, possibleKeys = []) {
+      if (Array.isArray(response)) return response;
+
+      const preferred = [
+        ...possibleKeys,
+        "data", "users", "addresses", "products", "result", "results", "items"
+      ];
+
+      for (const key of preferred) {
+        if (Array.isArray(response?.[key])) return response[key];
+      }
+
+      if (response?.data && typeof response.data === "object") {
+        for (const key of preferred) {
+          if (Array.isArray(response.data[key])) return response.data[key];
+        }
+      }
+
+      return [];
+    }
+
+    async function apiRequest(endpoint, options = {}) {
+      const url = endpoint.startsWith("http") ? endpoint : `${BASE_URL}${endpoint}`;
+      const fetchOptions = {
+        ...options,
+        headers: {
+          ...(options.body ? { "Content-Type": "application/json" } : {}),
+          ...(options.headers || {})
+        }
+      };
+
+      try {
+        const response = await fetch(url, fetchOptions);
+        let payload = null;
+        const contentType = response.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+          payload = await response.json().catch(() => null);
+        } else {
+          const text = await response.text().catch(() => "");
+          payload = text ? { message: text } : null;
+        }
+
+        if (!response.ok) {
+          const message = getMessage(payload, `Request failed with status ${response.status}`);
+          const error = new Error(message);
+          error.status = response.status;
+          error.payload = payload;
+          throw error;
+        }
+
+        setConnectionStatus(true);
+        return payload;
+      } catch (error) {
+        setConnectionStatus(false);
+        if (error instanceof TypeError) {
+          const networkError = new Error(
+            "Unable to connect to the API.\\n\\nPossible causes:\\n• Backend server is offline\\n• CORS is not enabled\\n• Wrong API URL"
+          );
+          networkError.cause = error;
+          throw networkError;
+        }
+        throw error;
+      }
+    }
+
+    function setConnectionStatus(ok) {
+      const dot = $("#statusDot");
+      const text = $("#connectionText");
+      dot.classList.remove("ok", "bad");
+      dot.classList.add(ok ? "ok" : "bad");
+      text.textContent = ok ? "API Connected" : "API Error";
+    }
+
+    function showToast(message, type = "info", duration = 3200) {
+      const container = $("#toasts");
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+
+      const icon = document.createElement("div");
+      icon.className = "toast-icon";
+      icon.textContent = type === "success" ? "✓" : type === "error" ? "✕" : type === "warning" ? "!" : "i";
+
+      const text = document.createElement("div");
+      text.className = "toast-text";
+      text.textContent = message;
+
+      const close = document.createElement("button");
+      close.className = "toast-close";
+      close.type = "button";
+      close.setAttribute("aria-label", "Close notification");
+      close.textContent = "×";
+      close.addEventListener("click", () => toast.remove());
+
+      toast.append(icon, text, close);
+      container.appendChild(toast);
+
+      setTimeout(() => toast.remove(), duration);
+    }
+
+    function setLoading(type, value) {
+      state.loading[type] = value;
+      if (type === "users") {
+        $("#refreshUsersBtn").disabled = value;
+        $("#refreshUsersBtn").textContent = value ? "Refreshing..." : "↻ Refresh";
+      }
+    }
+
+    function initials(name) {
+      const parts = String(name || "User").trim().split(/\s+/).filter(Boolean);
+      return (parts.slice(0, 2).map(p => p[0]).join("") || "U").toUpperCase();
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit", month: "long", year: "numeric"
+      }).format(date);
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "—";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      }).format(date);
+    }
+
+    function formatMoney(value) {
+      if (value === null || value === undefined || value === "") return "";
+      const num = Number(String(value).replace(/,/g, ""));
+      if (!Number.isFinite(num)) return String(value);
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency", currency: "INR", maximumFractionDigits: 2
+      }).format(num);
+    }
+
+    async function copyText(value) {
+      try {
+        await navigator.clipboard.writeText(String(value ?? ""));
+        showToast("Copied to clipboard", "success");
+      } catch {
+        showToast("Unable to copy to clipboard", "error");
+      }
+    }
+
+    function getUserId(user) {
+      return user?._id || user?.id || user?.userId || "";
+    }
+
+    function getAddressId(address) {
+      return address?._id || address?.id || address?.addressId || "";
+    }
+
+    function normalizeGender(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function renderStats() {
+      const users = state.users;
+      const male = users.filter(u => normalizeGender(u.gender) === "male").length;
+      const female = users.filter(u => normalizeGender(u.gender) === "female").length;
+      const other = users.filter(u => {
+        const g = normalizeGender(u.gender);
+        return g && g !== "male" && g !== "female";
+      }).length;
+
+      $("#totalUsers").textContent = users.length;
+      $("#maleUsers").textContent = male;
+      $("#femaleUsers").textContent = female;
+      $("#otherUsers").textContent = other;
+    }
+
+    function filterUsers() {
+      const q = state.search.trim().toLowerCase();
+      let users = [...state.users];
+
+      if (q) {
+        users = users.filter(user =>
+          [user.name, user.email, user.number, user.phone]
+            .some(value => String(value || "").toLowerCase().includes(q))
+        );
+      }
+
+      users.sort((a, b) => {
+        if (state.sort === "az") {
+          return String(a.name || "").localeCompare(String(b.name || ""));
+        }
+        if (state.sort === "za") {
+          return String(b.name || "").localeCompare(String(a.name || ""));
+        }
+
+        const ad = new Date(a.createdAt || 0).getTime() || 0;
+        const bd = new Date(b.createdAt || 0).getTime() || 0;
+        return state.sort === "oldest" ? ad - bd : bd - ad;
+      });
+
+      return users;
+    }
+
+    function userSkeletons(count = 6) {
+      return `<div class="skeleton-list">${Array.from({ length: count }, () => '<div class="skeleton-card"></div>').join("")}</div>`;
+    }
+
+    function contentSkeletons(count = 4) {
+      return `<div class="cards-grid">${Array.from({ length: count }, () => '<div class="skeleton-card large"></div>').join("")}</div>`;
+    }
+
+    function renderUsers() {
+      const list = $("#usersList");
+
+      if (state.loading.users) {
+        list.innerHTML = userSkeletons();
+        return;
+      }
+
+      if (state.errors.users) {
+        list.innerHTML = `
+          <div class="error-box">
+            <div class="empty-icon">!</div>
+            <h3>Unable to load users</h3>
+            <p>Check the backend connection and try again.</p>
+            <p class="error-msg">${escapeHTML(state.errors.users)}</p>
+            <div class="error-actions"><button class="btn small" data-action="retry-users" type="button">Retry</button></div>
+          </div>`;
+        return;
+      }
+
+      const users = filterUsers();
+      $("#usersCount").textContent = `${users.length} ${users.length === 1 ? "user" : "users"}`;
+
+      if (!users.length) {
+        const msg = state.search
+          ? `No users match "${escapeHTML(state.search)}".`
+          : "No users found.";
+
+        list.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">⌕</div>
+            <h3>${state.search ? "No matching users" : "No users found"}</h3>
+            <p>${msg}</p>
+          </div>`;
+        return;
+      }
+
+      const selectedId = getUserId(state.selectedUser);
+
+      list.innerHTML = users.map(user => {
+        const safe = safeObject(user);
+        const id = getUserId(safe);
+        const phone = safe.number || safe.phone || "No phone";
+        return `
+          <button class="user-card ${id && id === selectedId ? "active" : ""}" data-user-id="${escapeHTML(id)}" type="button">
+            <span class="avatar">${escapeHTML(initials(safe.name))}</span>
+            <span class="user-main">
+              <span class="user-name">${escapeHTML(safe.name || "Unnamed User")}</span>
+              <span class="user-email">${escapeHTML(safe.email || "No email")}</span>
+              <span class="user-meta">
+                <span>${escapeHTML(phone)}</span>
+                ${safe.gender ? `<span class="mini-pill">${escapeHTML(safe.gender)}</span>` : ""}
+              </span>
+            </span>
+          </button>`;
+      }).join("");
+    }
+
+    function renderOverview() {
+      const user = safeObject(state.selectedUser || {});
+      const userId = getUserId(user);
+
+      const items = [
+        ["Email", user.email, true],
+        ["Phone", user.number || user.phone, true],
+        ["Date of Birth", user.dob ? formatDate(user.dob) : null, false],
+        ["Age", user.age, false],
+        ["Gender", user.gender, false],
+        ["User ID", userId, true],
+        ["Created", user.createdAt ? formatDateTime(user.createdAt) : null, false],
+        ["Updated", user.updatedAt ? formatDateTime(user.updatedAt) : null, false]
+      ].filter(([, value]) => value !== undefined && value !== null && value !== "");
+
+      $("#overviewPanel").innerHTML = `
+        <div class="overview-grid">
+          ${items.map(([label, value, copyable]) => `
+            <div class="info-card">
+              <div class="info-label">${escapeHTML(label)}</div>
+              <div class="info-value-row">
+                <div class="info-value">${escapeHTML(value)}</div>
+                ${copyable ? `<button class="copy-btn" type="button" data-copy="${escapeHTML(value)}" aria-label="Copy ${escapeHTML(label)}">⧉</button>` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>`;
+    }
+
+    function renderSelectedUser() {
+      const user = state.selectedUser;
+      if (!user) {
+        $("#noSelection").classList.remove("hidden");
+        $("#selectedUserView").classList.add("hidden");
+        return;
+      }
+
+      $("#noSelection").classList.add("hidden");
+      $("#selectedUserView").classList.remove("hidden");
+      $("#detailsAvatar").textContent = initials(user.name);
+      $("#detailsName").textContent = user.name || "Unnamed User";
+      $("#detailsSub").textContent = [user.email, user.number || user.phone].filter(Boolean).join(" • ");
+      renderOverview();
+      setActiveTab(state.activeTab, false);
+    }
+
+    function selectUser(userId) {
+      const user = state.users.find(u => String(getUserId(u)) === String(userId));
+      if (!user) return;
+
+      const previousId = getUserId(state.selectedUser);
+      state.selectedUser = safeObject(user);
+
+      if (String(previousId) !== String(userId)) {
+        state.addresses = state.addressCache.get(String(userId)) || [];
+        state.products = state.productCache.get(String(userId)) || [];
+        state.errors.addresses = "";
+        state.errors.products = "";
+        $("#addressTabCount").textContent = state.addressCache.has(String(userId)) ? state.addresses.length : "—";
+        $("#productTabCount").textContent = state.productCache.has(String(userId)) ? state.products.length : "—";
+      }
+
+      renderUsers();
+      renderSelectedUser();
+
+      if (state.activeTab === "addresses") loadAddresses(false);
+      if (state.activeTab === "products") loadProducts(false);
+    }
+
+    async function loadUsers({ force = true, toast = false } = {}) {
+      setLoading("users", true);
+      state.errors.users = "";
+      renderUsers();
+
+      const selectedIdBefore = getUserId(state.selectedUser);
+
+      try {
+        const response = await apiRequest("/user/api");
+        const users = extractArray(response, ["users"]);
+        state.users = users.map(safeObject);
+
+        renderStats();
+
+        if (selectedIdBefore) {
+          const stillExists = state.users.find(u => String(getUserId(u)) === String(selectedIdBefore));
+          state.selectedUser = stillExists ? safeObject(stillExists) : null;
+        }
+
+        if (!state.selectedUser && state.users.length) {
+          const first = filterUsers()[0] || state.users[0];
+          state.selectedUser = safeObject(first);
+          state.activeTab = "overview";
+        }
+
+        if (toast) showToast("Users loaded successfully", "success");
+      } catch (error) {
+        state.users = [];
+        state.selectedUser = null;
+        state.errors.users = error.message || "Unable to load users";
+        renderStats();
+        showToast("Unable to load users", "error");
+      } finally {
+        setLoading("users", false);
+        renderUsers();
+        renderSelectedUser();
+      }
+    }
+
+    function getAddressDisplay(address) {
+      const a = address || {};
+      const line1 = [
+        a.house, a.houseNo, a.address, a.addressLine1, a.street, a.area
+      ].filter(Boolean).join(", ");
+
+      const line2 = [
+        a.addressLine2, a.landmark
+      ].filter(Boolean).join(", ");
+
+      const cityState = [
+        a.city || a.district,
+        a.state
+      ].filter(Boolean).join(", ");
+
+      const pin = a.pincode || a.pinCode || a.postalCode;
+      const location = [cityState, pin ? `- ${pin}` : ""].filter(Boolean).join(" ");
+
+      return {
+        type: a.type || "Address",
+        name: a.fullName || a.name || "",
+        phone: a.phone || a.number || "",
+        line1,
+        line2,
+        location,
+        country: a.country || "",
+        default: a.isDefault === true
+      };
+    }
+
+    function renderAddresses() {
+      const panel = $("#addressesPanel");
+
+      if (state.loading.addresses) {
+        panel.innerHTML = `
+          <div class="section-toolbar">
+            <h3>Addresses</h3>
+            <button class="btn small" type="button" disabled>Refreshing...</button>
+          </div>${contentSkeletons()}`;
+        return;
+      }
+
+      if (state.errors.addresses) {
+        panel.innerHTML = `
+          <div class="section-toolbar"><h3>Addresses</h3></div>
+          <div class="error-box">
+            <div class="empty-icon">!</div>
+            <h3>Unable to load addresses.</h3>
+            <p class="error-msg">${escapeHTML(state.errors.addresses)}</p>
+            <div class="error-actions"><button class="btn small" data-action="retry-addresses" type="button">Retry</button></div>
+          </div>`;
+        return;
+      }
+
+      $("#addressTabCount").textContent = state.addresses.length;
+
+      panel.innerHTML = `
+        <div class="section-toolbar">
+          <h3>Addresses (${state.addresses.length})</h3>
+          <button class="btn small" data-action="refresh-addresses" type="button">↻ Refresh</button>
+        </div>
+        ${!state.addresses.length
+          ? `<div class="empty"><div class="empty-icon">⌂</div><h3>No addresses found</h3><p>No addresses found for this user.</p></div>`
+          : `<div class="cards-grid">${state.addresses.map(address => {
+            const d = getAddressDisplay(address);
+            const addressId = getAddressId(address);
+            return `
+                  <article class="address-card">
+                    <div class="card-top">
+                      <div class="address-type">${escapeHTML(d.type)}</div>
+                      ${d.default ? `<span class="badge default">Default</span>` : ""}
+                    </div>
+                    <div class="address-lines">
+                      ${d.name ? `<div class="address-line"><strong>${escapeHTML(d.name)}</strong></div>` : ""}
+                      ${d.line1 ? `<div class="address-line">${escapeHTML(d.line1)}</div>` : ""}
+                      ${d.line2 ? `<div class="address-line">${escapeHTML(d.line2)}</div>` : ""}
+                      ${d.location ? `<div class="address-line">${escapeHTML(d.location)}</div>` : ""}
+                      ${d.country ? `<div class="address-line">${escapeHTML(d.country)}</div>` : ""}
+                      ${d.phone ? `<div class="address-line"><strong>Phone:</strong> ${escapeHTML(d.phone)}</div>` : ""}
+                    </div>
+                    <div class="card-actions">
+                      <button class="btn small" data-action="edit-address" data-address-id="${escapeHTML(addressId)}" type="button">Edit</button>
+                      <button class="btn small danger" data-action="delete-address" data-address-id="${escapeHTML(addressId)}" type="button">Delete</button>
+                    </div>
+                  </article>`;
+          }).join("")}</div>`
+        }`;
+    }
+
+    async function loadAddresses(force = false) {
+      const userId = getUserId(state.selectedUser);
+      if (!userId) return;
+
+      if (!force && state.addressCache.has(String(userId))) {
+        state.addresses = state.addressCache.get(String(userId));
+        state.errors.addresses = "";
+        renderAddresses();
+        return;
+      }
+
+      state.loading.addresses = true;
+      state.errors.addresses = "";
+      renderAddresses();
+
+      try {
+        const response = await apiRequest(`/user/${encodeURIComponent(userId)}`);
+        const addresses = extractArray(response, ["addresses"]);
+
+        state.addresses = addresses;
+        state.addressCache.set(String(userId), addresses);
+        $("#addressTabCount").textContent = addresses.length;
+      } catch (error) {
+        state.addresses = [];
+        state.errors.addresses = error.message || "Unable to load addresses";
+        showToast("Unable to load addresses", "error");
+      } finally {
+        state.loading.addresses = false;
+        renderAddresses();
+      }
+    }
+
+    function guessInputType(key, value) {
+      const lower = key.toLowerCase();
+      if (typeof value === "boolean") return "checkbox";
+      if (lower.includes("email")) return "email";
+      if (lower.includes("phone") || lower === "number" || lower.includes("mobile")) return "tel";
+      if (lower.includes("pincode") || lower.includes("postal") || lower === "pin") return "text";
+      if (lower.includes("date") && !Number.isNaN(new Date(value).getTime())) return "date";
+      if (typeof value === "number") return "number";
+      return "text";
+    }
+
+    function humanizeKey(key) {
+      return key
+        .replace(/([A-Z])/g, " $1")
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, ch => ch.toUpperCase())
+        .trim();
+    }
+
+    function openEditAddressModal(addressId) {
+      const address = state.addresses.find(a => String(getAddressId(a)) === String(addressId));
+      if (!address) return;
+
+      state.editingAddress = address;
+      const fields = $("#editFormFields");
+      fields.innerHTML = "";
+
+      const editableEntries = Object.entries(address).filter(([key, value]) =>
+        !INTERNAL_ADDRESS_KEYS.has(key) &&
+        !SENSITIVE_KEYS.has(key) &&
+        (["string", "number", "boolean"].includes(typeof value) || value === null)
+      );
+
+      if (!editableEntries.length) {
+        fields.innerHTML = `<div class="empty field full"><p>No editable address fields found.</p></div>`;
+      } else {
+        for (const [key, value] of editableEntries) {
+          const type = guessInputType(key, value);
+          const field = document.createElement("div");
+          field.className = "field";
+
+          const label = document.createElement("label");
+          label.htmlFor = `field-${key}`;
+          label.textContent = humanizeKey(key);
+
+          if (type === "checkbox") {
+            const row = document.createElement("div");
+            row.className = "checkbox-row";
+
+            const input = document.createElement("input");
+            input.type = "checkbox";
+            input.id = `field-${key}`;
+            input.name = key;
+            input.checked = Boolean(value);
+            input.dataset.originalType = "boolean";
+
+            const text = document.createElement("span");
+            text.textContent = Boolean(value) ? "Enabled" : "Disabled";
+            input.addEventListener("change", () => {
+              text.textContent = input.checked ? "Enabled" : "Disabled";
+            });
+
+            row.append(input, text);
+            field.append(label, row);
+          } else {
+            const input = document.createElement("input");
+            input.type = type;
+            input.id = `field-${key}`;
+            input.name = key;
+            input.value = formatInputValue(type, value);
+            input.dataset.originalType = typeof value;
+
+            if (key.toLowerCase().includes("pincode") || key.toLowerCase().includes("postal")) {
+              input.inputMode = "numeric";
+            }
+
+            field.append(label, input);
+          }
+
+          fields.appendChild(field);
+        }
+      }
+
+      $("#editModalBackdrop").classList.add("open");
+      requestAnimationFrame(() => {
+        const firstInput = $("#editFormFields input");
+        if (firstInput) firstInput.focus();
+      });
+    }
+
+    function formatInputValue(type, value) {
+      if (value === null || value === undefined) return "";
+      if (type === "date") {
+        const date = new Date(value);
+        if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+      }
+      return String(value);
+    }
+
+    function closeEditAddressModal() {
+      $("#editModalBackdrop").classList.remove("open");
+      state.editingAddress = null;
+    }
+
+    async function updateAddress(event) {
+      event.preventDefault();
+      const userId = getUserId(state.selectedUser);
+      const addressId = getAddressId(state.editingAddress);
+      if (!userId || !addressId) return;
+
+      const button = $("#saveAddressBtn");
+      button.disabled = true;
+      button.textContent = "Saving...";
+
+      const updatedAddress = {};
+      const form = $("#editAddressForm");
+
+      for (const input of $$("input, textarea, select", form)) {
+        if (!input.name) continue;
+
+        if (input.type === "checkbox") {
+          updatedAddress[input.name] = input.checked;
+          continue;
+        }
+
+        const originalType = input.dataset.originalType;
+        let value = input.value;
+
+        if (originalType === "number" && value !== "") {
+          const num = Number(value);
+          value = Number.isFinite(num) ? num : value;
+        }
+
+        updatedAddress[input.name] = value;
+      }
+
+      try {
+        await apiRequest(`/user/${encodeURIComponent(userId)}/${encodeURIComponent(addressId)}`, {
+          method: "PUT",
+          body: JSON.stringify(updatedAddress)
+        });
+
+        showToast("Address updated successfully", "success");
+        closeEditAddressModal();
+        state.addressCache.delete(String(userId));
+        await loadAddresses(true);
+      } catch (error) {
+        showToast(error.message || "Address update failed", "error", 5000);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Save Changes";
+      }
+    }
+
+    function confirmDeleteAddress(addressId) {
+      const address = state.addresses.find(a => String(getAddressId(a)) === String(addressId));
+      if (!address) return;
+
+      state.deletingAddress = address;
+      const d = getAddressDisplay(address);
+      const preview = [d.name, d.line1, d.line2, d.location, d.country].filter(Boolean).join(", ");
+      $("#deleteAddressPreview").textContent = preview || `Address ID: ${addressId}`;
+      $("#deleteModalBackdrop").classList.add("open");
+      $("#cancelDeleteBtn").focus();
+    }
+
+    function closeDeleteModal() {
+      $("#deleteModalBackdrop").classList.remove("open");
+      state.deletingAddress = null;
+    }
+
+    async function deleteAddress() {
+      const userId = getUserId(state.selectedUser);
+      const addressId = getAddressId(state.deletingAddress);
+      if (!userId || !addressId) return;
+
+      const button = $("#confirmDeleteBtn");
+      button.disabled = true;
+      button.textContent = "Deleting...";
+
+      try {
+        await apiRequest(`/user/${encodeURIComponent(userId)}/${encodeURIComponent(addressId)}`, {
+          method: "DELETE"
+        });
+
+        showToast("Address deleted successfully", "success");
+        closeDeleteModal();
+        state.addressCache.delete(String(userId));
+        await loadAddresses(true);
+      } catch (error) {
+        showToast(error.message || "Address delete failed", "error", 5000);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Delete Address";
+      }
+    }
+
+    function getProductImage(product) {
+      if (typeof product?.image === "string" && product.image.trim()) return product.image.trim();
+      if (Array.isArray(product?.images)) {
+        const first = product.images.find(img => typeof img === "string" && img.trim());
+        if (first) return first.trim();
+        const objectImg = product.images.find(img => img && typeof img === "object" && (img.url || img.src));
+        if (objectImg) return objectImg.url || objectImg.src;
+      }
+      return "";
+    }
+
+    function normalizeProduct(product, order = null) {
+      const p = safeObject(product || {});
+
+      return {
+        ...p,
+        orderId: order?._id || p.orderId || "",
+        orderCreatedAt: order?.createdAt || p.orderCreatedAt || "",
+        grandTotal: order?.grandTotal ?? p.grandTotal,
+        totalPrice: p.totalPrice ?? (
+          Number.isFinite(Number(p.price)) && Number.isFinite(Number(p.quantity))
+            ? Number(p.price) * Number(p.quantity)
+            : undefined
+        )
+      };
+    }
+
+    function extractProductsFromResponse(response) {
+      if (!response) return [];
+
+      // Products returned directly.
+      if (Array.isArray(response)) {
+        // Or an array of orders.
+        if (response.some(item => Array.isArray(item?.products))) {
+          return response.flatMap(order =>
+            (Array.isArray(order?.products) ? order.products : [])
+              .map(product => normalizeProduct(product, order))
+          );
+        }
+
+        return response.map(product => normalizeProduct(product));
+      }
+
+      // Direct product response.
+      for (const key of ["products", "items", "result", "results"]) {
+        if (Array.isArray(response?.[key])) {
+          return response[key].map(product => normalizeProduct(product));
+        }
+      }
+
+      // Your current Price API response:
+      // {
+      //   success: true,
+      //   totalOrders: 15,
+      //   orders: [{ user: "...", products: [...] }]
+      // }
+      if (Array.isArray(response?.orders)) {
+        return response.orders.flatMap(order =>
+          (Array.isArray(order?.products) ? order.products : [])
+            .map(product => normalizeProduct(product, order))
+        );
+      }
+
+      if (response?.data && typeof response.data === "object") {
+        return extractProductsFromResponse(response.data);
+      }
+
+      return [];
+    }
+
+    async function requestProductsForUser(userId) {
+      const attempted = [];
+      let lastError = null;
+
+      for (const buildEndpoint of PRODUCT_ENDPOINT_BUILDERS) {
+        const endpoint = buildEndpoint(userId);
+        attempted.push(endpoint);
+
+        try {
+          const response = await apiRequest(endpoint);
+          return { response, endpoint };
+        } catch (error) {
+          lastError = error;
+
+          // If route doesn't exist, try next candidate.
+          if (Number(error?.status) === 404) {
+            continue;
+          }
+
+          // For CORS/server/auth/etc. don't hide the real error.
+          throw error;
+        }
+      }
+
+      const error = lastError || new Error("No product endpoint worked.");
+      error.message =
+        `Product API route not found. Tried:\n${attempted.join("\n")}\n\n` +
+        `Expected product endpoint: /pro/product/:user`;
+
+      throw error;
+    }
+
+    function renderProducts() {
+      const panel = $("#productsPanel");
+
+      if (state.loading.products) {
+        panel.innerHTML = `
+          <div class="section-toolbar">
+            <h3>Products</h3>
+            <button class="btn small" type="button" disabled>Refreshing...</button>
+          </div>${contentSkeletons()}`;
+        return;
+      }
+
+      if (state.errors.products) {
+        panel.innerHTML = `
+          <div class="section-toolbar"><h3>Products</h3></div>
+          <div class="error-box">
+            <div class="empty-icon">!</div>
+            <h3>Unable to load products.</h3>
+            <p class="error-msg">${escapeHTML(state.errors.products)}</p>
+            <div class="error-actions"><button class="btn small" data-action="retry-products" type="button">Retry</button></div>
+          </div>`;
+        return;
+      }
+
+      $("#productTabCount").textContent = state.products.length;
+
+      panel.innerHTML = `
+        <div class="section-toolbar">
+          <h3>Products (${state.products.length})</h3>
+          <button class="btn small" data-action="refresh-products" type="button">↻ Refresh</button>
+        </div>
+        ${!state.products.length
+          ? `<div class="empty"><div class="empty-icon">▣</div><h3>No products found</h3><p>No products found for this user.</p></div>`
+          : `<div class="cards-grid">${state.products.map(product => {
+            const title = product.name || product.title || product.productName || "Untitled Product";
+            const category = product.category || "";
+            const price = product.price;
+            const quantity = product.quantity;
+            const status = product.status || "";
+            const image = getProductImage(product);
+            return `
+                  <article class="product-card">
+                    <div class="product-image-wrap">
+                      ${image
+                ? `<img class="product-image" src="${escapeHTML(image)}" alt="${escapeHTML(title)}" loading="lazy" data-product-image>`
+                : `<div class="product-placeholder"><div style="font-size:1.5rem;">▣</div><span>No product image</span></div>`
+              }
+                    </div>
+                    <div class="product-body">
+                      <div class="card-top">
+                        <div>
+                          <h4 class="product-title">${escapeHTML(title)}</h4>
+                          ${category ? `<div class="product-category">${escapeHTML(category)}</div>` : ""}
+                        </div>
+                        ${status ? `<span class="badge status">${escapeHTML(status)}</span>` : ""}
+                      </div>
+                      ${price !== undefined && price !== null && price !== "" ? `<div class="product-price">${escapeHTML(formatMoney(price))}</div>` : ""}
+                      <div class="product-meta">
+                        ${quantity !== undefined && quantity !== null ? `<span><strong>Quantity:</strong>&nbsp;${escapeHTML(quantity)}</span>` : ""}
+                        ${product.totalPrice !== undefined && product.totalPrice !== null ? `<span><strong>Total:</strong>&nbsp;${escapeHTML(formatMoney(product.totalPrice))}</span>` : ""}
+                        ${product.orderId ? `<span><strong>Order:</strong>&nbsp;${escapeHTML(product.orderId)}</span>` : ""}
+                        ${(product.createdAt || product.orderCreatedAt) ? `<span><strong>Created:</strong>&nbsp;${escapeHTML(formatDate(product.createdAt || product.orderCreatedAt))}</span>` : ""}
+                      </div>
+                      ${product.description ? `<div class="product-description">${escapeHTML(product.description)}</div>` : ""}
+                    </div>
+                  </article>`;
+          }).join("")}</div>`
+        }`;
+
+      $$("[data-product-image]", panel).forEach(img => {
+        img.addEventListener("error", () => {
+          const wrap = img.closest(".product-image-wrap");
+          img.remove();
+          const placeholder = document.createElement("div");
+          placeholder.className = "product-placeholder";
+          placeholder.innerHTML = '<div style="font-size:1.5rem;">▣</div><span>Image unavailable</span>';
+          wrap.appendChild(placeholder);
+        }, { once: true });
+      });
+    }
+
+    async function loadProducts(force = false) {
+      const userId = getUserId(state.selectedUser);
+      if (!userId) return;
+
+      if (!force && state.productCache.has(String(userId))) {
+        state.products = state.productCache.get(String(userId));
+        state.errors.products = "";
+        $("#productTabCount").textContent = state.products.length;
+        renderProducts();
+        return;
+      }
+
+      state.loading.products = true;
+      state.errors.products = "";
+      renderProducts();
+
+      try {
+        const { response, endpoint } = await requestProductsForUser(userId);
+        const products = extractProductsFromResponse(response);
+
+        state.products = products;
+        state.productCache.set(String(userId), products);
+        $("#productTabCount").textContent = products.length;
+
+        console.info("Products loaded from:", `${BASE_URL}${endpoint}`, {
+          userId,
+          productCount: products.length
+        });
+      } catch (error) {
+        state.products = [];
+        state.errors.products = error.message || "Unable to load products";
+        $("#productTabCount").textContent = "!";
+        showToast("Unable to load products", "error", 5000);
+      } finally {
+        state.loading.products = false;
+        renderProducts();
+      }
+    }
+
+    function setActiveTab(tab, shouldFetch = true) {
+      state.activeTab = tab;
+
+      $$(".tab").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
+      $("#overviewPanel").classList.toggle("hidden", tab !== "overview");
+      $("#addressesPanel").classList.toggle("hidden", tab !== "addresses");
+      $("#productsPanel").classList.toggle("hidden", tab !== "products");
+
+      if (!state.selectedUser || !shouldFetch) {
+        if (tab === "overview") renderOverview();
+        if (tab === "addresses") renderAddresses();
+        if (tab === "products") renderProducts();
+        return;
+      }
+
+      if (tab === "overview") renderOverview();
+      if (tab === "addresses") loadAddresses(false);
+      if (tab === "products") loadProducts(false);
+    }
+
+    function applyTheme(theme) {
+      const resolved = theme === "dark" ? "dark" : "light";
+      document.documentElement.dataset.theme = resolved;
+      localStorage.setItem("admin-theme", resolved);
+      $("#themeToggle").textContent = resolved === "dark" ? "☀ Light" : "🌙 Dark";
+      $("#themeToggle").setAttribute("aria-label", resolved === "dark" ? "Switch to light theme" : "Switch to dark theme");
+    }
+
+    function switchEnvironment(environment) {
+      if (!API_BASES[environment]) return;
+      state.environment = environment;
+      BASE_URL = API_BASES[environment];
+      localStorage.setItem("admin-environment", environment);
+      $("#apiUrl").textContent = `API: ${BASE_URL}`;
+
+      state.users = [];
+      state.selectedUser = null;
+      state.addresses = [];
+      state.products = [];
+      state.addressCache.clear();
+      state.productCache.clear();
+      state.errors.users = "";
+      state.errors.addresses = "";
+      state.errors.products = "";
+      state.activeTab = "overview";
+
+      $("#addressTabCount").textContent = "—";
+      $("#productTabCount").textContent = "—";
+      $("#statusDot").className = "status-dot";
+      $("#connectionText").textContent = "API status unknown";
+
+      renderStats();
+      renderUsers();
+      renderSelectedUser();
+      loadUsers({ toast: true });
+    }
+
+    function handleDelegatedClicks(event) {
+      const userButton = event.target.closest("[data-user-id]");
+      if (userButton) {
+        selectUser(userButton.dataset.userId);
+        return;
+      }
+
+      const actionButton = event.target.closest("[data-action]");
+      if (actionButton) {
+        const action = actionButton.dataset.action;
+        if (action === "retry-users") loadUsers({ toast: true });
+        if (action === "retry-addresses" || action === "refresh-addresses") loadAddresses(true);
+        if (action === "retry-products" || action === "refresh-products") loadProducts(true);
+        if (action === "edit-address") openEditAddressModal(actionButton.dataset.addressId);
+        if (action === "delete-address") confirmDeleteAddress(actionButton.dataset.addressId);
+        return;
+      }
+
+      const copyButton = event.target.closest("[data-copy]");
+      if (copyButton) {
+        copyText(copyButton.dataset.copy);
+      }
+    }
+
+    function bindEvents() {
+      $("#environmentSelect").addEventListener("change", e => switchEnvironment(e.target.value));
+
+      $("#themeToggle").addEventListener("click", () => {
+        const current = document.documentElement.dataset.theme || "light";
+        applyTheme(current === "dark" ? "light" : "dark");
+      });
+
+      $("#refreshUsersBtn").addEventListener("click", () => loadUsers({ toast: true }));
+
+      $("#searchInput").addEventListener("input", e => {
+        state.search = e.target.value;
+        $("#clearSearchBtn").classList.toggle("visible", Boolean(state.search));
+        renderUsers();
+      });
+
+      $("#clearSearchBtn").addEventListener("click", () => {
+        state.search = "";
+        $("#searchInput").value = "";
+        $("#clearSearchBtn").classList.remove("visible");
+        $("#searchInput").focus();
+        renderUsers();
+      });
+
+      $("#sortSelect").addEventListener("change", e => {
+        state.sort = e.target.value;
+        localStorage.setItem("admin-sort", state.sort);
+        renderUsers();
+      });
+
+      $$(".tab").forEach(tab => {
+        tab.addEventListener("click", () => setActiveTab(tab.dataset.tab, true));
+      });
+
+      document.addEventListener("click", handleDelegatedClicks);
+
+      $("#closeEditModalBtn").addEventListener("click", closeEditAddressModal);
+      $("#cancelEditBtn").addEventListener("click", closeEditAddressModal);
+      $("#editAddressForm").addEventListener("submit", updateAddress);
+
+      $("#closeDeleteModalBtn").addEventListener("click", closeDeleteModal);
+      $("#cancelDeleteBtn").addEventListener("click", closeDeleteModal);
+      $("#confirmDeleteBtn").addEventListener("click", deleteAddress);
+
+      $("#editModalBackdrop").addEventListener("click", e => {
+        if (e.target === e.currentTarget) closeEditAddressModal();
+      });
+
+      $("#deleteModalBackdrop").addEventListener("click", e => {
+        if (e.target === e.currentTarget) closeDeleteModal();
+      });
+
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+          if ($("#editModalBackdrop").classList.contains("open")) closeEditAddressModal();
+          if ($("#deleteModalBackdrop").classList.contains("open")) closeDeleteModal();
+        }
+      });
+    }
+
+    function init() {
+      const savedTheme = localStorage.getItem("admin-theme");
+      const preferredTheme = savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      applyTheme(preferredTheme);
+
+      if (!API_BASES[state.environment]) state.environment = "production";
+      BASE_URL = API_BASES[state.environment];
+      $("#environmentSelect").value = state.environment;
+      $("#sortSelect").value = ["newest", "oldest", "az", "za"].includes(state.sort) ? state.sort : "newest";
+      $("#apiUrl").textContent = `API: ${BASE_URL}`;
+
+      bindEvents();
+      renderStats();
+      renderUsers();
+      renderSelectedUser();
+      loadUsers();
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
