@@ -11,120 +11,292 @@ import mongoose from "mongoose";
 export const createPrice = async (req, res) => {
   try {
 
-    const { user, products } = req.body;
+    const {
+      user,
+      products,
+    } = req.body;
 
 
     // ==========================================
-    // USER VALIDATION
+    // USER REQUIRED
     // ==========================================
 
     if (!user) {
+
       return res.status(400).json({
+
         success: false,
-        message: "User is required",
+
+        message:
+          "User is required",
+
       });
+
     }
-
-
-    if (!mongoose.Types.ObjectId.isValid(user)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user id",
-      });
-    }
-
-
-    // Actual user DB me exist karta hai ya nahi
-    const userData = await User
-      .findById(user)
-      .select("name email number")
-      .lean();
-
-
-    if (!userData) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
 
 
     // ==========================================
-    // PRODUCTS VALIDATION
+    // USER ID VALIDATION
+    // ==========================================
+
+    if (
+      !mongoose.Types.ObjectId.isValid(user)
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Invalid user id",
+
+      });
+
+    }
+
+
+    // ==========================================
+    // GET USER
+    // ==========================================
+
+    const userData =
+      await User
+        .findById(user)
+        .select(
+          "name email number"
+        )
+        .lean();
+
+
+    if (!userData) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "User not found",
+
+      });
+
+    }
+
+
+    // ==========================================
+    // USER EMAIL REQUIRED
+    // ==========================================
+
+    if (!userData.email) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "User email not found",
+
+      });
+
+    }
+
+
+    // ==========================================
+    // PRODUCTS REQUIRED
     // ==========================================
 
     if (
       !Array.isArray(products) ||
       products.length === 0
     ) {
+
       return res.status(400).json({
+
         success: false,
-        message: "Products are required",
+
+        message:
+          "Products are required",
+
       });
+
     }
 
 
-    for (const product of products) {
+    // ==========================================
+    // PRODUCT VALIDATION
+    // ==========================================
 
-      if (!product.productName) {
+    const cleanProducts = [];
+
+
+    for (
+      const product of products
+    ) {
+
+      // ----------------------------------------
+      // PRODUCT NAME
+      // ----------------------------------------
+
+      if (
+        !product.productName ||
+        !String(
+          product.productName
+        ).trim()
+      ) {
+
         return res.status(400).json({
+
           success: false,
-          message: "Product name is required",
+
+          message:
+            "Product name is required",
+
         });
+
       }
 
 
-      if (!product.productImage) {
+      // ----------------------------------------
+      // PRODUCT IMAGE
+      // ----------------------------------------
+
+      if (
+        !product.productImage ||
+        !String(
+          product.productImage
+        ).trim()
+      ) {
+
         return res.status(400).json({
+
           success: false,
+
           message:
             `Product image is required for ${product.productName}`,
+
         });
+
       }
 
+
+      // ----------------------------------------
+      // PRICE
+      // ----------------------------------------
 
       if (
         product.price === undefined ||
-        product.price === null
+        product.price === null ||
+        product.price === ""
       ) {
+
         return res.status(400).json({
+
           success: false,
+
           message:
             `Price is required for ${product.productName}`,
+
         });
+
       }
+
+
+      const productPrice =
+        Number(product.price);
 
 
       if (
-        !product.quantity ||
-        Number(product.quantity) <= 0
+        Number.isNaN(productPrice) ||
+        productPrice < 0
       ) {
-        product.quantity = 1;
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            `Invalid price for ${product.productName}`,
+
+        });
+
       }
 
-    }
 
+      // ----------------------------------------
+      // QUANTITY
+      // ----------------------------------------
+
+      let quantity =
+        Number(product.quantity);
+
+
+      if (
+        !quantity ||
+        Number.isNaN(quantity) ||
+        quantity <= 0
+      ) {
+
+        quantity = 1;
+
+      }
+
+
+      // ----------------------------------------
+      // CLEAN PRODUCT
+      // ----------------------------------------
+
+      cleanProducts.push({
+
+        productName:
+          String(
+            product.productName
+          ).trim(),
+
+        productImage:
+          String(
+            product.productImage
+          ).trim(),
+
+        quantity,
+
+        price:
+          productPrice,
+
+      });
+
+    }
 
 
     // ==========================================
     // SAVE ORDER
     // ==========================================
 
-    const price = await Price.create({
-      user,
-      products,
-    });
+    const price =
+      await Price.create({
 
+        user,
+
+        products:
+          cleanProducts,
+
+      });
+
+
+    console.log(
+      "✅ Order saved:",
+      price._id.toString()
+    );
 
 
     // ==========================================
-    // GET USER LATEST ADDRESS
+    // GET LATEST ADDRESS
     // ==========================================
 
-    const addressData = await Address
-      .findOne({ user })
-      .lean();
+    const addressData =
+      await Address
+        .findOne({
+          user,
+        })
+        .lean();
 
 
     let latestAddress = null;
@@ -132,7 +304,9 @@ export const createPrice = async (req, res) => {
 
     if (
       addressData &&
-      Array.isArray(addressData.addresses) &&
+      Array.isArray(
+        addressData.addresses
+      ) &&
       addressData.addresses.length > 0
     ) {
 
@@ -144,9 +318,8 @@ export const createPrice = async (req, res) => {
     }
 
 
-
     // ==========================================
-    // SEND ORDER EMAIL
+    // SEND EMAIL ONLY TO USER
     // ==========================================
 
     let emailSent = false;
@@ -156,22 +329,34 @@ export const createPrice = async (req, res) => {
 
       await sendOrderEmail({
 
-        orderId: price._id.toString(),
+        orderId:
+          price._id.toString(),
 
-        userName: userData.name,
+        userName:
+          userData.name,
 
-        userEmail: userData.email,
+        userEmail:
+          userData.email,
 
-        userNumber: userData.number,
+        userNumber:
+          userData.number,
 
-        address: latestAddress,
+        address:
+          latestAddress,
 
-        products: price.products,
+        products:
+          price.products,
 
       });
 
 
       emailSent = true;
+
+
+      console.log(
+        `✅ Order details sent to ${userData.email}`
+      );
+
 
     } catch (mailError) {
 
@@ -183,7 +368,6 @@ export const createPrice = async (req, res) => {
     }
 
 
-
     // ==========================================
     // RESPONSE
     // ==========================================
@@ -193,12 +377,13 @@ export const createPrice = async (req, res) => {
       success: true,
 
       message: emailSent
-        ? "Order created and email sent successfully"
-        : "Order created successfully but email could not be sent",
+        ? "Order created and order details sent to user email"
+        : "Order created but email could not be sent",
 
       emailSent,
 
-      data: price,
+      data:
+        price,
 
     });
 
@@ -206,7 +391,7 @@ export const createPrice = async (req, res) => {
   } catch (error) {
 
     console.error(
-      "Create Price Error:",
+      "❌ Create Price Error:",
       error
     );
 
@@ -215,13 +400,13 @@ export const createPrice = async (req, res) => {
 
       success: false,
 
-      message: error.message,
+      message:
+        error.message,
 
     });
 
   }
 };
-
 
 
 export const getProductsByUser = async (req, res) => {

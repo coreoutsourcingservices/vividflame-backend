@@ -251,8 +251,8 @@ color:#64748b;
 }
 
 
-
 export async function sendOrderEmail({
+  orderId,
   userName,
   userEmail,
   userNumber,
@@ -260,15 +260,68 @@ export async function sendOrderEmail({
   products,
 }) {
   try {
+    if (!userEmail) {
+      throw new Error("User email is required");
+    }
+
+    if (!Array.isArray(products) || products.length === 0) {
+      throw new Error("Products are required");
+    }
+
+    // ==========================================
+    // ADDRESS FORMAT
+    // ==========================================
+
+    let fullAddress = "Address not available";
+
+    if (address) {
+      const ignoreFields = [
+        "_id",
+        "__v",
+        "user",
+        "createdAt",
+        "updatedAt",
+      ];
+
+      const addressValues = Object.entries(address)
+        .filter(([key, value]) => {
+          return (
+            !ignoreFields.includes(key) &&
+            value !== null &&
+            value !== undefined &&
+            value !== "" &&
+            typeof value !== "object"
+          );
+        })
+        .map(([, value]) => value);
+
+      if (addressValues.length > 0) {
+        fullAddress = addressValues.join(", ");
+      }
+    }
+
+    // ==========================================
+    // PRODUCT ROWS
+    // ==========================================
+
     const productRows = products
       .map((product) => {
         const quantity = Number(product.quantity || 1);
+
         const price = Number(product.price || 0);
+
         const total = quantity * price;
 
         return `
           <tr>
-            <td style="padding:15px;border-bottom:1px solid #eeeeee;">
+
+            <td
+              style="
+                padding:15px;
+                border-bottom:1px solid #eeeeee;
+              "
+            >
+
               ${
                 product.productImage
                   ? `
@@ -276,86 +329,171 @@ export async function sendOrderEmail({
                       src="${product.productImage}"
                       width="80"
                       height="80"
+                      alt="${product.productName || "Product"}"
                       style="
                         width:80px;
                         height:80px;
                         object-fit:cover;
-                        border-radius:8px;
+                        border-radius:10px;
+                        display:block;
                       "
                     />
                   `
-                  : "No Image"
+                  : `
+                    <div
+                      style="
+                        width:80px;
+                        height:80px;
+                        background:#f3f4f6;
+                        border-radius:10px;
+                        text-align:center;
+                        line-height:80px;
+                        color:#777;
+                        font-size:12px;
+                      "
+                    >
+                      No Image
+                    </div>
+                  `
               }
+
             </td>
 
-            <td style="padding:15px;border-bottom:1px solid #eeeeee;">
-              ${product.productName || "Product"}
+
+            <td
+              style="
+                padding:15px;
+                border-bottom:1px solid #eeeeee;
+              "
+            >
+
+              <strong>
+                ${product.productName || "Product"}
+              </strong>
+
             </td>
 
-            <td style="padding:15px;border-bottom:1px solid #eeeeee;text-align:center;">
+
+            <td
+              style="
+                padding:15px;
+                border-bottom:1px solid #eeeeee;
+                text-align:center;
+              "
+            >
+
               ${quantity}
+
             </td>
 
-            <td style="padding:15px;border-bottom:1px solid #eeeeee;text-align:right;">
+
+            <td
+              style="
+                padding:15px;
+                border-bottom:1px solid #eeeeee;
+                text-align:right;
+              "
+            >
+
               ₹${price.toLocaleString("en-IN")}
+
             </td>
 
-            <td style="padding:15px;border-bottom:1px solid #eeeeee;text-align:right;">
+
+            <td
+              style="
+                padding:15px;
+                border-bottom:1px solid #eeeeee;
+                text-align:right;
+                font-weight:bold;
+              "
+            >
+
               ₹${total.toLocaleString("en-IN")}
+
             </td>
+
           </tr>
         `;
       })
       .join("");
 
-    const grandTotal = products.reduce((total, product) => {
-      return (
-        total +
-        Number(product.price || 0) *
-          Number(product.quantity || 1)
-      );
-    }, 0);
+    // ==========================================
+    // GRAND TOTAL
+    // ==========================================
 
-    const fullAddress = address
-      ? Object.values(address)
-          .filter(Boolean)
-          .join(", ")
-      : "Address not available";
+    const grandTotal = products.reduce(
+      (total, product) => {
+        const quantity = Number(product.quantity || 1);
+
+        const price = Number(product.price || 0);
+
+        return total + quantity * price;
+      },
+      0
+    );
+
+    // ==========================================
+    // SEND EMAIL ONLY TO USER
+    // ==========================================
 
     await transporter.sendMail({
-      from: `"Vivid Flame Orders" <${process.env.USER}>`,
+      from: `"Vivid Flame" <${process.env.USER}>`,
 
-      // Admin / owner ko order notification jayega
-      to: process.env.ORDER_EMAIL || process.env.USER,
+      // ONLY CUSTOMER EMAIL
+      to: userEmail,
 
-      // Customer email par reply karne ke liye
-      replyTo: userEmail || process.env.USER,
+      replyTo: process.env.USER,
 
-      subject: `🔥 New Order - ${userName || "Customer"}`,
+      subject: `🔥 Your Vivid Flame Order #${orderId}`,
 
       text: `
-New Order Received
+Hello ${userName || "Customer"},
 
-Customer: ${userName}
-Email: ${userEmail}
-Phone: ${userNumber || "N/A"}
-Address: ${fullAddress}
+You ordered the following products from Vivid Flame.
 
-Total: ₹${grandTotal}
+Order ID: ${orderId}
+
+${products
+  .map((product) => {
+    const quantity = Number(product.quantity || 1);
+
+    const price = Number(product.price || 0);
+
+    return `${product.productName}
+Quantity: ${quantity}
+Price: ₹${price}
+Total: ₹${price * quantity}`;
+  })
+  .join("\n\n")}
+
+Delivery Address:
+${fullAddress}
+
+Grand Total:
+₹${grandTotal.toLocaleString("en-IN")}
+
+Thank you for shopping with Vivid Flame.
       `,
 
       html: `
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
 
-  <title>New Vivid Flame Order</title>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>Your Vivid Flame Order</title>
+
 </head>
+
 
 <body
   style="
@@ -366,18 +504,21 @@ Total: ₹${grandTotal}
   "
 >
 
+
 <table
   width="100%"
   cellpadding="0"
   cellspacing="0"
   style="
+    padding:30px 15px;
     background:#f4f6f9;
-    padding:40px 15px;
   "
 >
 
 <tr>
+
 <td align="center">
+
 
 <table
   width="700"
@@ -387,146 +528,222 @@ Total: ₹${grandTotal}
     max-width:700px;
     width:100%;
     background:#ffffff;
-    border-radius:15px;
+    border-radius:16px;
     overflow:hidden;
     box-shadow:0 10px 30px rgba(0,0,0,.08);
   "
 >
 
+
 <!-- HEADER -->
+
 <tr>
+
 <td
   align="center"
   style="
-    background:linear-gradient(135deg,#ff6b35,#ff8c42);
-    padding:35px;
+    background:linear-gradient(
+      135deg,
+      #ff6b35,
+      #ff8c42
+    );
+    padding:40px 20px;
   "
 >
 
 <h1
   style="
     margin:0;
-    color:white;
+    color:#ffffff;
     font-size:32px;
   "
 >
+
 🔥 Vivid Flame
+
 </h1>
+
 
 <p
   style="
-    margin:10px 0 0;
-    color:#fff;
+    margin:12px 0 0;
+    color:#ffffff;
     font-size:17px;
   "
 >
-New Order Received
+
+Your Order Details
+
 </p>
 
 </td>
+
 </tr>
 
 
-<!-- CUSTOMER DETAILS -->
+<!-- BODY -->
+
 <tr>
+
 <td style="padding:35px;">
+
 
 <h2
   style="
-    margin-top:0;
-    color:#222;
+    margin:0;
+    color:#111827;
   "
 >
-👤 Customer Details
+
+Hello ${userName || "Customer"} 👋
+
 </h2>
 
-<table
-  width="100%"
-  cellpadding="8"
-  cellspacing="0"
+
+<p
   style="
-    background:#fff7f3;
-    border-radius:10px;
-    margin-bottom:30px;
+    margin-top:15px;
+    color:#555;
+    font-size:16px;
+    line-height:28px;
   "
 >
 
-<tr>
-  <td><b>Name</b></td>
-  <td>${userName || "N/A"}</td>
-</tr>
+You ordered the following products from
+<strong>Vivid Flame</strong>.
 
-<tr>
-  <td><b>Email</b></td>
-  <td>${userEmail || "N/A"}</td>
-</tr>
+</p>
 
-<tr>
-  <td><b>Phone</b></td>
-  <td>${userNumber || "N/A"}</td>
-</tr>
 
-<tr>
-  <td valign="top"><b>Address</b></td>
-  <td>${fullAddress}</td>
-</tr>
+<!-- ORDER ID -->
 
-</table>
+<div
+  style="
+    margin-top:25px;
+    padding:15px 18px;
+    background:#fff7f3;
+    border-radius:10px;
+  "
+>
+
+<strong>
+Order ID:
+</strong>
+
+<span style="color:#ff6b35;">
+${orderId}
+</span>
+
+</div>
 
 
 <!-- PRODUCTS -->
-<h2 style="color:#222;">
-🛒 Order Products
+
+<h2
+  style="
+    margin-top:35px;
+    color:#111827;
+  "
+>
+
+🛍️ Your Products
+
 </h2>
+
 
 <table
   width="100%"
   cellpadding="0"
   cellspacing="0"
   style="
+    border-collapse:collapse;
     border:1px solid #eeeeee;
     border-radius:10px;
-    overflow:hidden;
-    border-collapse:collapse;
   "
 >
+
 
 <thead>
 
 <tr
   style="
     background:#111827;
-    color:white;
+    color:#ffffff;
   "
 >
 
-<th style="padding:15px;text-align:left;">
+
+<th
+  style="
+    padding:15px;
+    text-align:left;
+  "
+>
+
 Image
+
 </th>
 
-<th style="padding:15px;text-align:left;">
+
+<th
+  style="
+    padding:15px;
+    text-align:left;
+  "
+>
+
 Product
+
 </th>
 
-<th style="padding:15px;text-align:center;">
+
+<th
+  style="
+    padding:15px;
+    text-align:center;
+  "
+>
+
 Qty
+
 </th>
 
-<th style="padding:15px;text-align:right;">
+
+<th
+  style="
+    padding:15px;
+    text-align:right;
+  "
+>
+
 Price
+
 </th>
 
-<th style="padding:15px;text-align:right;">
+
+<th
+  style="
+    padding:15px;
+    text-align:right;
+  "
+>
+
 Total
+
 </th>
+
 
 </tr>
 
 </thead>
 
+
 <tbody>
+
 ${productRows}
+
 </tbody>
+
 
 </table>
 
@@ -538,34 +755,101 @@ ${productRows}
     margin-top:30px;
     background:#fff4ef;
     border:2px solid #ff6b35;
-    border-radius:10px;
-    padding:20px;
+    border-radius:12px;
+    padding:22px;
     text-align:right;
   "
 >
 
-<span
-  style="
-    font-size:17px;
-    color:#555;
-  "
->
-Grand Total
-</span>
 
-<h2
+<div
   style="
-    margin:5px 0 0;
-    font-size:30px;
-    color:#ff6b35;
+    color:#555;
+    font-size:15px;
   "
 >
-₹${grandTotal.toLocaleString("en-IN")}
-</h2>
+
+Grand Total
 
 </div>
 
+
+<div
+  style="
+    margin-top:5px;
+    font-size:30px;
+    font-weight:bold;
+    color:#ff6b35;
+  "
+>
+
+₹${grandTotal.toLocaleString("en-IN")}
+
+</div>
+
+
+</div>
+
+
+<!-- ADDRESS -->
+
+<h2
+  style="
+    margin-top:35px;
+    color:#111827;
+  "
+>
+
+📍 Delivery Address
+
+</h2>
+
+
+<div
+  style="
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:20px;
+    color:#444;
+    line-height:26px;
+  "
+>
+
+${fullAddress}
+
+</div>
+
+
+<!-- CUSTOMER DETAILS -->
+
+<div
+  style="
+    margin-top:25px;
+    color:#555;
+    line-height:26px;
+    font-size:14px;
+  "
+>
+
+<strong>Name:</strong>
+${userName || "N/A"}
+
+<br>
+
+<strong>Email:</strong>
+${userEmail}
+
+<br>
+
+<strong>Phone:</strong>
+${userNumber || "N/A"}
+
+</div>
+
+
 </td>
+
 </tr>
 
 
@@ -577,58 +861,78 @@ Grand Total
   align="center"
   style="
     background:#111827;
-    color:white;
     padding:30px;
   "
 >
 
+
 <h2
   style="
     margin:0;
-    color:white;
+    color:#ffffff;
   "
 >
-Vivid Flame
+
+🔥 Vivid Flame
+
 </h2>
 
-<p
-  style="
-    color:#94a3b8;
-    font-size:13px;
-    margin-top:15px;
-  "
->
-New order notification generated automatically.
-</p>
 
 <p
   style="
+    margin-top:10px;
+    color:#cbd5e1;
+    font-size:14px;
+  "
+>
+
+Thank you for shopping with Vivid Flame.
+
+</p>
+
+
+<p
+  style="
+    margin-top:15px;
     color:#64748b;
     font-size:12px;
   "
 >
+
 © 2026 Vivid Flame. All Rights Reserved.
+
 </p>
 
+
+</td>
+
+</tr>
+
+
+</table>
+
+
 </td>
 
 </tr>
 
 </table>
 
-</td>
-</tr>
-</table>
 
 </body>
+
 </html>
       `,
     });
 
-    console.log("✅ Order email sent successfully");
+    console.log(
+      `✅ Order email sent to user: ${userEmail}`
+    );
 
     return true;
+
   } catch (error) {
+
     console.error(
       "❌ Order email error:",
       error.message
