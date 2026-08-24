@@ -249,3 +249,391 @@ color:#64748b;
 `
   });
 }
+
+
+
+export async function sendOrderEmail({
+  userName,
+  userEmail,
+  userNumber,
+  address,
+  products,
+}) {
+  try {
+    const productRows = products
+      .map((product) => {
+        const quantity = Number(product.quantity || 1);
+        const price = Number(product.price || 0);
+        const total = quantity * price;
+
+        return `
+          <tr>
+            <td style="padding:15px;border-bottom:1px solid #eeeeee;">
+              ${
+                product.productImage
+                  ? `
+                    <img
+                      src="${product.productImage}"
+                      width="80"
+                      height="80"
+                      style="
+                        width:80px;
+                        height:80px;
+                        object-fit:cover;
+                        border-radius:8px;
+                      "
+                    />
+                  `
+                  : "No Image"
+              }
+            </td>
+
+            <td style="padding:15px;border-bottom:1px solid #eeeeee;">
+              ${product.productName || "Product"}
+            </td>
+
+            <td style="padding:15px;border-bottom:1px solid #eeeeee;text-align:center;">
+              ${quantity}
+            </td>
+
+            <td style="padding:15px;border-bottom:1px solid #eeeeee;text-align:right;">
+              ₹${price.toLocaleString("en-IN")}
+            </td>
+
+            <td style="padding:15px;border-bottom:1px solid #eeeeee;text-align:right;">
+              ₹${total.toLocaleString("en-IN")}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const grandTotal = products.reduce((total, product) => {
+      return (
+        total +
+        Number(product.price || 0) *
+          Number(product.quantity || 1)
+      );
+    }, 0);
+
+    const fullAddress = address
+      ? Object.values(address)
+          .filter(Boolean)
+          .join(", ")
+      : "Address not available";
+
+    await transporter.sendMail({
+      from: `"Vivid Flame Orders" <${process.env.USER}>`,
+
+      // Admin / owner ko order notification jayega
+      to: process.env.ORDER_EMAIL || process.env.USER,
+
+      // Customer email par reply karne ke liye
+      replyTo: userEmail || process.env.USER,
+
+      subject: `🔥 New Order - ${userName || "Customer"}`,
+
+      text: `
+New Order Received
+
+Customer: ${userName}
+Email: ${userEmail}
+Phone: ${userNumber || "N/A"}
+Address: ${fullAddress}
+
+Total: ₹${grandTotal}
+      `,
+
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>New Vivid Flame Order</title>
+</head>
+
+<body
+  style="
+    margin:0;
+    padding:0;
+    background:#f4f6f9;
+    font-family:Arial,Helvetica,sans-serif;
+  "
+>
+
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  style="
+    background:#f4f6f9;
+    padding:40px 15px;
+  "
+>
+
+<tr>
+<td align="center">
+
+<table
+  width="700"
+  cellpadding="0"
+  cellspacing="0"
+  style="
+    max-width:700px;
+    width:100%;
+    background:#ffffff;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+  "
+>
+
+<!-- HEADER -->
+<tr>
+<td
+  align="center"
+  style="
+    background:linear-gradient(135deg,#ff6b35,#ff8c42);
+    padding:35px;
+  "
+>
+
+<h1
+  style="
+    margin:0;
+    color:white;
+    font-size:32px;
+  "
+>
+🔥 Vivid Flame
+</h1>
+
+<p
+  style="
+    margin:10px 0 0;
+    color:#fff;
+    font-size:17px;
+  "
+>
+New Order Received
+</p>
+
+</td>
+</tr>
+
+
+<!-- CUSTOMER DETAILS -->
+<tr>
+<td style="padding:35px;">
+
+<h2
+  style="
+    margin-top:0;
+    color:#222;
+  "
+>
+👤 Customer Details
+</h2>
+
+<table
+  width="100%"
+  cellpadding="8"
+  cellspacing="0"
+  style="
+    background:#fff7f3;
+    border-radius:10px;
+    margin-bottom:30px;
+  "
+>
+
+<tr>
+  <td><b>Name</b></td>
+  <td>${userName || "N/A"}</td>
+</tr>
+
+<tr>
+  <td><b>Email</b></td>
+  <td>${userEmail || "N/A"}</td>
+</tr>
+
+<tr>
+  <td><b>Phone</b></td>
+  <td>${userNumber || "N/A"}</td>
+</tr>
+
+<tr>
+  <td valign="top"><b>Address</b></td>
+  <td>${fullAddress}</td>
+</tr>
+
+</table>
+
+
+<!-- PRODUCTS -->
+<h2 style="color:#222;">
+🛒 Order Products
+</h2>
+
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  style="
+    border:1px solid #eeeeee;
+    border-radius:10px;
+    overflow:hidden;
+    border-collapse:collapse;
+  "
+>
+
+<thead>
+
+<tr
+  style="
+    background:#111827;
+    color:white;
+  "
+>
+
+<th style="padding:15px;text-align:left;">
+Image
+</th>
+
+<th style="padding:15px;text-align:left;">
+Product
+</th>
+
+<th style="padding:15px;text-align:center;">
+Qty
+</th>
+
+<th style="padding:15px;text-align:right;">
+Price
+</th>
+
+<th style="padding:15px;text-align:right;">
+Total
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+${productRows}
+</tbody>
+
+</table>
+
+
+<!-- GRAND TOTAL -->
+
+<div
+  style="
+    margin-top:30px;
+    background:#fff4ef;
+    border:2px solid #ff6b35;
+    border-radius:10px;
+    padding:20px;
+    text-align:right;
+  "
+>
+
+<span
+  style="
+    font-size:17px;
+    color:#555;
+  "
+>
+Grand Total
+</span>
+
+<h2
+  style="
+    margin:5px 0 0;
+    font-size:30px;
+    color:#ff6b35;
+  "
+>
+₹${grandTotal.toLocaleString("en-IN")}
+</h2>
+
+</div>
+
+</td>
+</tr>
+
+
+<!-- FOOTER -->
+
+<tr>
+
+<td
+  align="center"
+  style="
+    background:#111827;
+    color:white;
+    padding:30px;
+  "
+>
+
+<h2
+  style="
+    margin:0;
+    color:white;
+  "
+>
+Vivid Flame
+</h2>
+
+<p
+  style="
+    color:#94a3b8;
+    font-size:13px;
+    margin-top:15px;
+  "
+>
+New order notification generated automatically.
+</p>
+
+<p
+  style="
+    color:#64748b;
+    font-size:12px;
+  "
+>
+© 2026 Vivid Flame. All Rights Reserved.
+</p>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+      `,
+    });
+
+    console.log("✅ Order email sent successfully");
+
+    return true;
+  } catch (error) {
+    console.error(
+      "❌ Order email error:",
+      error.message
+    );
+
+    throw error;
+  }
+}
