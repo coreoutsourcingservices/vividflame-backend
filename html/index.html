@@ -2176,18 +2176,67 @@
         button.textContent = "Delete Address";
       }
     }
+function getProductImage(product) {
+  if (!product) return "";
 
-    function getProductImage(product) {
-      if (typeof product?.image === "string" && product.image.trim()) return product.image.trim();
-      if (Array.isArray(product?.images)) {
-        const first = product.images.find(img => typeof img === "string" && img.trim());
-        if (first) return first.trim();
-        const objectImg = product.images.find(img => img && typeof img === "object" && (img.url || img.src));
-        if (objectImg) return objectImg.url || objectImg.src;
-      }
-      return "";
+  // Your Price model field
+  if (
+    typeof product.productImage === "string" &&
+    product.productImage.trim()
+  ) {
+    return product.productImage.trim();
+  }
+
+  // Other possible API fields
+  if (
+    typeof product.image === "string" &&
+    product.image.trim()
+  ) {
+    return product.image.trim();
+  }
+
+  if (
+    typeof product.imageUrl === "string" &&
+    product.imageUrl.trim()
+  ) {
+    return product.imageUrl.trim();
+  }
+
+  if (
+    typeof product.thumbnail === "string" &&
+    product.thumbnail.trim()
+  ) {
+    return product.thumbnail.trim();
+  }
+
+  if (Array.isArray(product.images)) {
+    const firstStringImage = product.images.find(
+      img => typeof img === "string" && img.trim()
+    );
+
+    if (firstStringImage) {
+      return firstStringImage.trim();
     }
 
+    const objectImage = product.images.find(
+      img =>
+        img &&
+        typeof img === "object" &&
+        (img.url || img.src || img.image)
+    );
+
+    if (objectImage) {
+      return (
+        objectImage.url ||
+        objectImage.src ||
+        objectImage.image ||
+        ""
+      );
+    }
+  }
+
+  return "";
+}
     function normalizeProduct(product, order = null) {
       const p = safeObject(product || {});
 
