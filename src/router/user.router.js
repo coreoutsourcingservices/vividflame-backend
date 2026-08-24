@@ -4,6 +4,7 @@ import {
     verifyOTP,
     login,
     verifyOTP_login,
+    getAllUsers,
 
 
 } from "../controllers/user.controllers.js";
@@ -28,6 +29,7 @@ router.post("/login-verifyOTP", verifyOTP_login)
 
 
 router.post("/add", addAddress);
+router.get("/api",getAllUsers)
 router.get("/:user", getAddresses);
 router.put("/:user/:addressId", updateAddress);
 router.delete("/:user/:addressId", deleteAddress);
