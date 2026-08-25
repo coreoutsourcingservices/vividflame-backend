@@ -1,5 +1,14 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const logoPath = path.join(
+  __dirname,
+  "../../public/logo.png"
+);
 
 dotenv.config();
 
@@ -31,6 +40,14 @@ export async function sendEmailOTP(email, otp) {
     to: email,
     replyTo: `${process.env.USER}`,
     subject: "Your Vivid Flame Verification Code",
+    attachments: [
+      {
+        filename: "logo.png",
+        path: logoPath,
+        cid: "vividflame-logo",
+      },
+    ],
+
 
     text: `Your Vivid Flame OTP is ${otp}. This code will expire in 10 minutes.`,
 
@@ -322,9 +339,8 @@ export async function sendOrderEmail({
               "
             >
 
-              ${
-                product.productImage
-                  ? `
+              ${product.productImage
+            ? `
                     <img
                       src="${product.productImage}"
                       width="80"
@@ -339,7 +355,7 @@ export async function sendOrderEmail({
                       "
                     />
                   `
-                  : `
+            : `
                     <div
                       style="
                         width:80px;
@@ -355,7 +371,7 @@ export async function sendOrderEmail({
                       No Image
                     </div>
                   `
-              }
+          }
 
             </td>
 
@@ -442,12 +458,25 @@ export async function sendOrderEmail({
 
       // ONLY CUSTOMER EMAIL
       to: userEmail,
+      bcc: process.env.ORDER_EMAIL,
 
       replyTo: process.env.USER,
 
       subject: `🔥 Your Vivid Flame Order #${orderId}`,
+      attachments: [
+        {
+          filename: "logo.png",
+          path: logoPath,
+          cid: "vividflame-logo",
+        },
+      ],
 
       text: `
+
+
+
+
+
 Hello ${userName || "Customer"},
 
 You ordered the following products from Vivid Flame.
@@ -455,17 +484,17 @@ You ordered the following products from Vivid Flame.
 Order ID: ${orderId}
 
 ${products
-  .map((product) => {
-    const quantity = Number(product.quantity || 1);
+          .map((product) => {
+            const quantity = Number(product.quantity || 1);
 
-    const price = Number(product.price || 0);
+            const price = Number(product.price || 0);
 
-    return `${product.productName}
+            return `${product.productName}
 Quantity: ${quantity}
 Price: ₹${price}
 Total: ₹${price * quantity}`;
-  })
-  .join("\n\n")}
+          })
+          .join("\n\n")}
 
 Delivery Address:
 ${fullAddress}
@@ -476,22 +505,19 @@ Grand Total:
 Thank you for shopping with Vivid Flame.
       `,
 
-      html: `
+    html: `
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
-
-<title>Your Vivid Flame Order</title>
-
+  <title>Your Vivid Flame Order</title>
 </head>
 
 
@@ -499,430 +525,751 @@ Thank you for shopping with Vivid Flame.
   style="
     margin:0;
     padding:0;
-    background:#f4f6f9;
+    background:#f3f4f6;
     font-family:Arial,Helvetica,sans-serif;
-  "
->
-
-
-<table
-  width="100%"
-  cellpadding="0"
-  cellspacing="0"
-  style="
-    padding:30px 15px;
-    background:#f4f6f9;
-  "
->
-
-<tr>
-
-<td align="center">
-
-
-<table
-  width="700"
-  cellpadding="0"
-  cellspacing="0"
-  style="
-    max-width:700px;
-    width:100%;
-    background:#ffffff;
-    border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
-  "
->
-
-
-<!-- HEADER -->
-
-<tr>
-
-<td
-  align="center"
-  style="
-    background:linear-gradient(
-      135deg,
-      #ff6b35,
-      #ff8c42
-    );
-    padding:40px 20px;
-  "
->
-
-<h1
-  style="
-    margin:0;
-    color:#ffffff;
-    font-size:32px;
-  "
->
-
-🔥 Vivid Flame
-
-</h1>
-
-
-<p
-  style="
-    margin:12px 0 0;
-    color:#ffffff;
-    font-size:17px;
-  "
->
-
-Your Order Details
-
-</p>
-
-</td>
-
-</tr>
-
-
-<!-- BODY -->
-
-<tr>
-
-<td style="padding:35px;">
-
-
-<h2
-  style="
-    margin:0;
     color:#111827;
   "
 >
 
-Hello ${userName || "Customer"} 👋
-
-</h2>
-
-
-<p
-  style="
-    margin-top:15px;
-    color:#555;
-    font-size:16px;
-    line-height:28px;
-  "
->
-
-You ordered the following products from
-<strong>Vivid Flame</strong>.
-
-</p>
-
-
-<!-- ORDER ID -->
-
-<div
-  style="
-    margin-top:25px;
-    padding:15px 18px;
-    background:#fff7f3;
-    border-radius:10px;
-  "
->
-
-<strong>
-Order ID:
-</strong>
-
-<span style="color:#ff6b35;">
-${orderId}
-</span>
-
-</div>
-
-
-<!-- PRODUCTS -->
-
-<h2
-  style="
-    margin-top:35px;
-    color:#111827;
-  "
->
-
-🛍️ Your Products
-
-</h2>
-
-
-<table
-  width="100%"
-  cellpadding="0"
-  cellspacing="0"
-  style="
-    border-collapse:collapse;
-    border:1px solid #eeeeee;
-    border-radius:10px;
-  "
->
-
-
-<thead>
-
-<tr
-  style="
-    background:#111827;
-    color:#ffffff;
-  "
->
-
-
-<th
-  style="
-    padding:15px;
-    text-align:left;
-  "
->
-
-Image
-
-</th>
-
-
-<th
-  style="
-    padding:15px;
-    text-align:left;
-  "
->
-
-Product
-
-</th>
-
-
-<th
-  style="
-    padding:15px;
-    text-align:center;
-  "
->
-
-Qty
-
-</th>
-
-
-<th
-  style="
-    padding:15px;
-    text-align:right;
-  "
->
-
-Price
-
-</th>
-
-
-<th
-  style="
-    padding:15px;
-    text-align:right;
-  "
->
-
-Total
-
-</th>
-
-
-</tr>
-
-</thead>
-
-
-<tbody>
-
-${productRows}
-
-</tbody>
-
-
-</table>
-
-
-<!-- GRAND TOTAL -->
-
-<div
-  style="
-    margin-top:30px;
-    background:#fff4ef;
-    border:2px solid #ff6b35;
-    border-radius:12px;
-    padding:22px;
-    text-align:right;
-  "
->
-
-
-<div
-  style="
-    color:#555;
-    font-size:15px;
-  "
->
-
-Grand Total
-
-</div>
-
-
-<div
-  style="
-    margin-top:5px;
-    font-size:30px;
-    font-weight:bold;
-    color:#ff6b35;
-  "
->
-
-₹${grandTotal.toLocaleString("en-IN")}
-
-</div>
-
-
-</div>
-
-
-<!-- ADDRESS -->
-
-<h2
-  style="
-    margin-top:35px;
-    color:#111827;
-  "
->
-
-📍 Delivery Address
-
-</h2>
-
-
-<div
-  style="
-    background:#f8fafc;
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-    padding:20px;
-    color:#444;
-    line-height:26px;
-  "
->
-
-${fullAddress}
-
-</div>
-
-
-<!-- CUSTOMER DETAILS -->
-
-<div
-  style="
-    margin-top:25px;
-    color:#555;
-    line-height:26px;
-    font-size:14px;
-  "
->
-
-<strong>Name:</strong>
-${userName || "N/A"}
-
-<br>
-
-<strong>Email:</strong>
-${userEmail}
-
-<br>
-
-<strong>Phone:</strong>
-${userNumber || "N/A"}
-
-</div>
-
-
-</td>
-
-</tr>
-
-
-<!-- FOOTER -->
-
-<tr>
-
-<td
-  align="center"
-  style="
-    background:#111827;
-    padding:30px;
-  "
->
-
-
-<h2
-  style="
-    margin:0;
-    color:#ffffff;
-  "
->
-
-🔥 Vivid Flame
-
-</h2>
-
-
-<p
-  style="
-    margin-top:10px;
-    color:#cbd5e1;
-    font-size:14px;
-  "
->
-
-Thank you for shopping with Vivid Flame.
-
-</p>
-
-
-<p
-  style="
-    margin-top:15px;
-    color:#64748b;
-    font-size:12px;
-  "
->
-
-© 2026 Vivid Flame. All Rights Reserved.
-
-</p>
-
-
-</td>
-
-</tr>
-
-
-</table>
-
-
-</td>
-
-</tr>
-
-</table>
-
+  <!-- OUTER BACKGROUND -->
+  <table
+    width="100%"
+    cellpadding="0"
+    cellspacing="0"
+    border="0"
+    role="presentation"
+    style="
+      width:100%;
+      background:#f3f4f6;
+      margin:0;
+      padding:0;
+    "
+  >
+
+    <tr>
+      <td
+        align="center"
+        style="
+          padding:35px 15px;
+        "
+      >
+
+
+        <!-- MAIN EMAIL CARD -->
+        <table
+          width="700"
+          cellpadding="0"
+          cellspacing="0"
+          border="0"
+          role="presentation"
+          style="
+            width:100%;
+            max-width:700px;
+            background:#ffffff;
+            border-radius:18px;
+            overflow:hidden;
+            box-shadow:0 10px 35px rgba(15,23,42,0.10);
+          "
+        >
+
+
+          <!-- ===================================== -->
+          <!-- HEADER -->
+          <!-- ===================================== -->
+
+          <tr>
+
+            <td
+              align="center"
+              style="
+                background:black;
+                padding:42px 25px 38px 25px;
+                text-align:center;
+              "
+            >
+
+
+              <!-- LOGO CARD -->
+
+              <table
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+                align="center"
+                style="
+                  margin:0 auto 24px auto;
+                "
+              >
+
+                <tr>
+
+                  <td
+                    align="center"
+                    style="
+                      background:black;
+                      padding:12px 24px;
+                      border-radius:12px;
+                    "
+                  >
+
+                    <img
+                      src="cid:vividflame-logo"
+                      alt="Vivid Flame"
+                      width="430"
+                      style="
+                        display:block;
+                        width:430px;
+                        max-width:100%;
+                        height:auto;
+                        margin:0 auto;
+                        padding:0;
+                        border:0;
+                        outline:none;
+                        text-decoration:none;
+                      "
+                    />
+
+                  </td>
+
+                </tr>
+
+              </table>
+
+
+              <!-- BRAND -->
+
+              <h1
+                style="
+                  margin:0;
+                  padding:0;
+                  color:#ffffff;
+                  font-size:34px;
+                  line-height:42px;
+                  font-weight:700;
+                  font-family:Arial,Helvetica,sans-serif;
+                "
+              >
+                🔥 Vivid Flame
+              </h1>
+
+
+              <!-- SUBTITLE -->
+
+              <p
+                style="
+                  margin:10px 0 0 0;
+                  padding:0;
+                  color:#ffffff;
+                  font-size:18px;
+                  line-height:27px;
+                  font-weight:500;
+                  font-family:Arial,Helvetica,sans-serif;
+                "
+              >
+                Your Order Details
+              </p>
+
+
+              <p
+                style="
+                  margin:8px 0 0 0;
+                  padding:0;
+                  color:#fff7ed;
+                  font-size:14px;
+                  line-height:22px;
+                "
+              >
+                Thank you for shopping with us
+              </p>
+
+            </td>
+
+          </tr>
+
+
+
+          <!-- ===================================== -->
+          <!-- MAIN BODY -->
+          <!-- ===================================== -->
+
+          <tr>
+
+            <td
+              style="
+                padding:38px 35px;
+              "
+            >
+
+
+              <!-- HELLO -->
+
+              <h2
+                style="
+                  margin:0;
+                  padding:0;
+                  color:#111827;
+                  font-size:25px;
+                  line-height:34px;
+                  font-weight:700;
+                "
+              >
+                Hello ${userName || "Customer"} 👋
+              </h2>
+
+
+              <p
+                style="
+                  margin:12px 0 0 0;
+                  padding:0;
+                  color:#64748b;
+                  font-size:16px;
+                  line-height:27px;
+                "
+              >
+                You ordered the following products from
+                <strong style="color:#111827;">
+                  Vivid Flame
+                </strong>.
+              </p>
+
+
+
+              <!-- ================================= -->
+              <!-- ORDER ID -->
+              <!-- ================================= -->
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+                style="
+                  width:100%;
+                  margin-top:28px;
+                "
+              >
+
+                <tr>
+
+                  <td
+                    style="
+                      background:#fff7f3;
+                      border:1px solid #ffddd0;
+                      border-radius:12px;
+                      padding:17px 20px;
+                    "
+                  >
+
+                    <span
+                      style="
+                        color:#374151;
+                        font-size:14px;
+                        font-weight:700;
+                      "
+                    >
+                      Order ID:
+                    </span>
+
+                    <span
+                      style="
+                        color:#ff6b35;
+                        font-size:14px;
+                        font-weight:700;
+                        margin-left:5px;
+                        word-break:break-all;
+                      "
+                    >
+                      ${orderId}
+                    </span>
+
+                  </td>
+
+                </tr>
+
+              </table>
+
+
+
+              <!-- ================================= -->
+              <!-- PRODUCTS TITLE -->
+              <!-- ================================= -->
+
+              <h2
+                style="
+                  margin:35px 0 17px 0;
+                  padding:0;
+                  color:#111827;
+                  font-size:22px;
+                  line-height:30px;
+                  font-weight:700;
+                "
+              >
+                🛍️ Your Products
+              </h2>
+
+
+
+              <!-- ================================= -->
+              <!-- PRODUCT TABLE -->
+              <!-- ================================= -->
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+                style="
+                  width:100%;
+                  border-collapse:collapse;
+                  border:1px solid #e5e7eb;
+                "
+              >
+
+
+                <thead>
+
+                  <tr
+                    style="
+                      background:#111827;
+                    "
+                  >
+
+                    <th
+                      width="100"
+                      align="left"
+                      style="
+                        padding:15px;
+                        color:#ffffff;
+                        font-size:13px;
+                        font-weight:700;
+                        border:none;
+                      "
+                    >
+                      Image
+                    </th>
+
+
+                    <th
+                      align="left"
+                      style="
+                        padding:15px;
+                        color:#ffffff;
+                        font-size:13px;
+                        font-weight:700;
+                        border:none;
+                      "
+                    >
+                      Product
+                    </th>
+
+
+                    <th
+                      width="70"
+                      align="center"
+                      style="
+                        padding:15px;
+                        color:#ffffff;
+                        font-size:13px;
+                        font-weight:700;
+                        border:none;
+                      "
+                    >
+                      Qty
+                    </th>
+
+
+                    <th
+                      width="110"
+                      align="right"
+                      style="
+                        padding:15px;
+                        color:#ffffff;
+                        font-size:13px;
+                        font-weight:700;
+                        border:none;
+                      "
+                    >
+                      Price
+                    </th>
+
+
+                    <th
+                      width="120"
+                      align="right"
+                      style="
+                        padding:15px;
+                        color:#ffffff;
+                        font-size:13px;
+                        font-weight:700;
+                        border:none;
+                      "
+                    >
+                      Total
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  ${productRows}
+
+                </tbody>
+
+
+              </table>
+
+
+
+              <!-- ================================= -->
+              <!-- GRAND TOTAL -->
+              <!-- ================================= -->
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+                style="
+                  width:100%;
+                  margin-top:28px;
+                "
+              >
+
+                <tr>
+
+                  <td
+                    align="right"
+                    style="
+                      background:#fff4ef;
+                      border:2px solid #ff6b35;
+                      border-radius:12px;
+                      padding:22px 24px;
+                    "
+                  >
+
+                    <div
+                      style="
+                        color:#6b7280;
+                        font-size:14px;
+                        line-height:22px;
+                      "
+                    >
+                      Grand Total
+                    </div>
+
+
+                    <div
+                      style="
+                        margin-top:3px;
+                        color:#ff6b35;
+                        font-size:31px;
+                        line-height:38px;
+                        font-weight:800;
+                      "
+                    >
+                      ₹${grandTotal.toLocaleString("en-IN")}
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              </table>
+
+
+
+              <!-- ================================= -->
+              <!-- DELIVERY ADDRESS -->
+              <!-- ================================= -->
+
+              <h2
+                style="
+                  margin:35px 0 15px 0;
+                  padding:0;
+                  color:#111827;
+                  font-size:21px;
+                  line-height:30px;
+                  font-weight:700;
+                "
+              >
+                📍 Delivery Address
+              </h2>
+
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+              >
+
+                <tr>
+
+                  <td
+                    style="
+                      padding:20px;
+                      background:#f8fafc;
+                      border:1px solid #e2e8f0;
+                      border-radius:12px;
+                      color:#475569;
+                      font-size:15px;
+                      line-height:26px;
+                    "
+                  >
+                    ${fullAddress}
+                  </td>
+
+                </tr>
+
+              </table>
+
+
+
+              <!-- ================================= -->
+              <!-- CUSTOMER DETAILS -->
+              <!-- ================================= -->
+
+              <h2
+                style="
+                  margin:32px 0 15px 0;
+                  color:#111827;
+                  font-size:21px;
+                  line-height:30px;
+                  font-weight:700;
+                "
+              >
+                👤 Customer Details
+              </h2>
+
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+                style="
+                  width:100%;
+                  background:#ffffff;
+                  border:1px solid #e5e7eb;
+                  border-radius:12px;
+                "
+              >
+
+                <tr>
+
+                  <td
+                    width="110"
+                    style="
+                      padding:14px 18px;
+                      border-bottom:1px solid #eeeeee;
+                      color:#6b7280;
+                      font-size:14px;
+                      font-weight:600;
+                    "
+                  >
+                    Name
+                  </td>
+
+                  <td
+                    style="
+                      padding:14px 18px;
+                      border-bottom:1px solid #eeeeee;
+                      color:#111827;
+                      font-size:14px;
+                      font-weight:600;
+                    "
+                  >
+                    ${userName || "N/A"}
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td
+                    style="
+                      padding:14px 18px;
+                      border-bottom:1px solid #eeeeee;
+                      color:#6b7280;
+                      font-size:14px;
+                      font-weight:600;
+                    "
+                  >
+                    Email
+                  </td>
+
+                  <td
+                    style="
+                      padding:14px 18px;
+                      border-bottom:1px solid #eeeeee;
+                      color:#111827;
+                      font-size:14px;
+                    "
+                  >
+                    ${userEmail}
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td
+                    style="
+                      padding:14px 18px;
+                      color:#6b7280;
+                      font-size:14px;
+                      font-weight:600;
+                    "
+                  >
+                    Phone
+                  </td>
+
+                  <td
+                    style="
+                      padding:14px 18px;
+                      color:#111827;
+                      font-size:14px;
+                    "
+                  >
+                    ${userNumber || "N/A"}
+                  </td>
+
+                </tr>
+
+              </table>
+
+
+
+              <!-- THANK YOU -->
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                role="presentation"
+                style="
+                  margin-top:30px;
+                "
+              >
+
+                <tr>
+
+                  <td
+                    align="center"
+                    style="
+                      padding:20px;
+                      background:#fff7f3;
+                      border-radius:12px;
+                    "
+                  >
+
+                    <p
+                      style="
+                        margin:0;
+                        color:#ff6b35;
+                        font-size:17px;
+                        line-height:27px;
+                        font-weight:700;
+                      "
+                    >
+                      ❤️ Thank you for choosing Vivid Flame
+                    </p>
+
+                  </td>
+
+                </tr>
+
+              </table>
+
+
+            </td>
+
+          </tr>
+
+
+
+          <!-- ===================================== -->
+          <!-- FOOTER -->
+          <!-- ===================================== -->
+
+          <tr>
+
+            <td
+              align="center"
+              style="
+                background:#111827;
+                padding:32px 25px;
+                text-align:center;
+              "
+            >
+
+
+              <h2
+                style="
+                  margin:0;
+                  color:#ffffff;
+                  font-size:23px;
+                  line-height:32px;
+                  font-weight:700;
+                "
+              >
+                🔥 Vivid Flame
+              </h2>
+
+
+              <p
+                style="
+                  margin:8px 0 0 0;
+                  color:#cbd5e1;
+                  font-size:14px;
+                  line-height:23px;
+                "
+              >
+                Premium Lifestyle & Fragrance Products
+              </p>
+
+
+              <p
+                style="
+                  margin:18px 0 0 0;
+                  color:#64748b;
+                  font-size:12px;
+                  line-height:20px;
+                "
+              >
+                © 2026 Vivid Flame. All Rights Reserved.
+              </p>
+
+            </td>
+
+          </tr>
+
+
+        </table>
+        <!-- MAIN CARD END -->
+
+
+      </td>
+    </tr>
+
+  </table>
 
 </body>
 
 </html>
-      `,
+`,
     });
 
     console.log(
